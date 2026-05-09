@@ -3,18 +3,20 @@
         <div class="loginPage">
             <h2 style="text-align: center">欢迎注册</h2>
             <br />
-            <el-form :model="form" label-width="auto">
-                <el-form-item label="邮箱">
+            <el-form ref="formRef" :model="form" label-width="auto" :rules="rules">
+                <el-form-item label="邮箱" prop="email">
                     <el-input v-model="form.email" :prefix-icon="Message" />
                 </el-form-item>
-                <el-form-item label="密码">
+                <el-form-item label="密码" prop="password">
                     <el-input v-model="form.password" :prefix-icon="Lock" type="password" />
                 </el-form-item>
-                <el-form-item label="确认密码">
+                <el-form-item label="确认密码" prop="confirmPassword">
                     <el-input v-model="form.confirmPassword" :prefix-icon="Lock" type="password" />
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" style="width: 100%; height: 3em"> 注册 </el-button>
+                    <el-button type="primary" style="width: 100%; height: 3em" @click="submitForm">
+                        注册
+                    </el-button>
                 </el-form-item>
             </el-form>
             <el-text style="display: block; text-align: center; margin-top: 1em">
@@ -25,6 +27,7 @@
 </template>
 <script setup lang="ts">
     import { ref } from 'vue'
+    import type { FormInstance, FormItemRule } from 'element-plus'
     import { Lock, Message } from '@element-plus/icons-vue'
 
     const form = ref({
@@ -32,6 +35,49 @@
         password: '',
         confirmPassword: '',
     })
+    const formRef = ref<FormInstance>()
+
+    const checkPassword = (
+        rule: FormItemRule,
+        value: string,
+        callback: (error?: Error) => void,
+    ) => {
+        if (!value) {
+            callback(new Error('请输入密码'))
+        }
+        if (value !== form.value.password) {
+            callback(new Error('密码不匹配'))
+        } else {
+            callback()
+        }
+    }
+
+    const rules = {
+        email: [
+            { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+            {
+                type: 'email',
+                message: '请输入正确的邮箱格式',
+                trigger: ['blur'],
+            },
+        ],
+        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+        confirmPassword: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { validator: checkPassword, trigger: 'blur' },
+        ],
+    }
+    const submitForm = async () => {
+        if (!formRef.value) return
+        formRef.value.validate((valid: boolean) => {
+            if (valid) {
+                console.log('验证成功')
+                // todo:提交逻辑
+            } else {
+                console.log('验证失败')
+            }
+        })
+    }
 </script>
 <style scoped>
     .loginPage {
