@@ -20,7 +20,8 @@
                 </el-form-item>
             </el-form>
             <el-text style="display: block; text-align: center; margin-top: 1em">
-                拥有账号？<el-link type="primary">去登录</el-link>
+                拥有账号？
+                <router-link to="login"><el-link type="primary">去登录</el-link></router-link>
             </el-text>
         </div>
     </div>

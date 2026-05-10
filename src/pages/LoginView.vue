@@ -17,9 +17,10 @@
                 </el-form-item>
             </el-form>
             <el-text style="display: block; text-align: center; margin-top: 1em">
-                没有账号？<el-link type="primary" @click="$router.push('/register')"
-                    >去注册</el-link
-                >
+                没有账号？
+                <router-link to="register"><el-link type="primary">
+                    去注册
+                </el-link></router-link>
             </el-text>
         </div>
     </div>
