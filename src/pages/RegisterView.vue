@@ -14,7 +14,12 @@
                     <el-input v-model="form.confirmPassword" :prefix-icon="Lock" type="password" />
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" style="width: 100%; height: 3em" @click="submitForm">
+                    <el-button
+                        type="primary"
+                        style="width: 100%; height: 3em"
+                        :loading="buttonLoading"
+                        @click="submitForm"
+                    >
                         注册
                     </el-button>
                 </el-form-item>
@@ -33,6 +38,8 @@
     import { ElMessage } from 'element-plus'
     import type { FormInstance, FormItemRule } from 'element-plus'
     import { Lock, Message } from '@element-plus/icons-vue'
+
+    const buttonLoading = ref(false)
 
     const form = ref({
         email: '',
@@ -73,6 +80,7 @@
     }
     const submitForm = async () => {
         if (!formRef.value) return
+        buttonLoading.value = true
         formRef.value.validate(async (valid: boolean) => {
             if (valid) {
                 console.log('验证成功')
@@ -108,6 +116,7 @@
             } else {
                 console.log('验证失败')
             }
+            buttonLoading.value = false
         })
     }
 </script>
