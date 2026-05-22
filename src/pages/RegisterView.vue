@@ -28,6 +28,9 @@
 </template>
 <script setup lang="ts">
     import { ref } from 'vue'
+    import axios from 'axios'
+    import { isAxiosError } from 'axios'
+    import { ElMessage } from 'element-plus'
     import type { FormInstance, FormItemRule } from 'element-plus'
     import { Lock, Message } from '@element-plus/icons-vue'
 
@@ -70,10 +73,38 @@
     }
     const submitForm = async () => {
         if (!formRef.value) return
-        formRef.value.validate((valid: boolean) => {
+        formRef.value.validate(async (valid: boolean) => {
             if (valid) {
                 console.log('验证成功')
-                // todo:提交逻辑
+                try {
+                    const res = await axios.post('http://127.0.0.1:3000/register', {
+                        email: form.value.email,
+                        password: form.value.password,
+                    })
+                    ElMessage({
+                        message: res.data.message,
+                        type: 'success',
+                    })
+                } catch (error) {
+                    if (isAxiosError(error)) {
+                        if (error.response && error.response.data && error.response.data.message) {
+                            ElMessage({
+                                message: error.response.data.message,
+                                type: 'error',
+                            })
+                        } else {
+                            ElMessage({
+                                message: '网络错误',
+                                type: 'error',
+                            })
+                        }
+                    } else {
+                        ElMessage({
+                            message: '未知错误',
+                            type: 'error',
+                        })
+                    }
+                }
             } else {
                 console.log('验证失败')
             }
