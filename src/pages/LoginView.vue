@@ -11,24 +11,30 @@
                     <el-input v-model="form.password" :prefix-icon="Lock" type="password" />
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" style="width: 100%; height: 3em" @click="submitForm">
+                    <el-button
+                        type="primary"
+                        style="width: 100%; height: 3em"
+                        :loading="buttonLoading"
+                        @click="submitForm"
+                    >
                         登录
                     </el-button>
                 </el-form-item>
             </el-form>
             <el-text style="display: block; text-align: center; margin-top: 1em">
                 没有账号？
-                <router-link to="register"><el-link type="primary">
-                    去注册
-                </el-link></router-link>
+                <router-link to="register"><el-link type="primary"> 去注册 </el-link></router-link>
             </el-text>
         </div>
     </div>
 </template>
 <script setup lang="ts">
     import { ref } from 'vue'
-    import type { FormInstance } from 'element-plus'
+    import { ElMessage, type FormInstance } from 'element-plus'
     import { Lock, Message } from '@element-plus/icons-vue'
+    import axios, { isAxiosError } from 'axios'
+
+    const buttonLoading = ref(false)
 
     const formRef = ref<FormInstance>()
 
@@ -50,16 +56,44 @@
     }
 
     const submitForm = async () => {
-        // 确保表单实例已经挂载
         if (!formRef.value) return
-
-        formRef.value.validate((valid, fields) => {
+        buttonLoading.value = true
+        formRef.value.validate(async (valid: boolean) => {
             if (valid) {
-                console.log('表单验证通过，准备提交:', form.value)
-                // todo:提交逻辑
+                console.log('验证成功')
+                try {
+                    const res = await axios.post('http://127.0.0.1:3000/login', {
+                        email: form.value.email,
+                        password: form.value.password,
+                    })
+                    ElMessage({
+                        message: res.data.message,
+                        type: 'success',
+                    })
+                } catch (error) {
+                    if (isAxiosError(error)) {
+                        if (error.response && error.response.data && error.response.data.message) {
+                            ElMessage({
+                                message: error.response.data.message,
+                                type: 'error',
+                            })
+                        } else {
+                            ElMessage({
+                                message: '网络错误',
+                                type: 'error',
+                            })
+                        }
+                    } else {
+                        ElMessage({
+                            message: '未知错误',
+                            type: 'error',
+                        })
+                    }
+                }
             } else {
-                console.log('表单验证未通过', fields)
+                console.log('验证失败')
             }
+            buttonLoading.value = false
         })
     }
 </script>
