@@ -66,10 +66,12 @@
                         email: form.value.email,
                         password: form.value.password,
                     })
+                    // todo:登录后跳转
                     ElMessage({
                         message: res.data.message,
                         type: 'success',
                     })
+                    // todo:保存数据
                 } catch (error) {
                     if (isAxiosError(error)) {
                         if (error.response && error.response.data && error.response.data.message) {
@@ -77,6 +79,7 @@
                                 message: error.response.data.message,
                                 type: 'error',
                             })
+                            // todo:清空密码
                         } else {
                             ElMessage({
                                 message: '网络错误',
