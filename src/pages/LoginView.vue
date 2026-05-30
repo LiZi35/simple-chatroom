@@ -33,7 +33,9 @@
     import { ElMessage, type FormInstance } from 'element-plus'
     import { Lock, Message } from '@element-plus/icons-vue'
     import axios, { isAxiosError } from 'axios'
+    import { useUserStore } from '@/store/User.ts'
 
+    const userStore = useUserStore()
     const buttonLoading = ref(false)
 
     const formRef = ref<FormInstance>()
@@ -67,11 +69,22 @@
                         password: form.value.password,
                     })
                     // todo:登录后跳转
-                    ElMessage({
-                        message: res.data.message,
-                        type: 'success',
-                    })
-                    // todo:保存数据
+                    if (res.data.id && res.data.email && res.data.nickname) {
+                        userStore.$patch({
+                            id: res.data.id,
+                            email: res.data.email,
+                            nickname: res.data.nickname,
+                        })
+                        ElMessage({
+                            message: res.data.message,
+                            type: 'success',
+                        })
+                    } else {
+                        ElMessage({
+                            message: '未知错误',
+                            type: 'error',
+                        })
+                    }
                 } catch (error) {
                     if (isAxiosError(error)) {
                         if (error.response && error.response.data && error.response.data.message) {
@@ -79,7 +92,6 @@
                                 message: error.response.data.message,
                                 type: 'error',
                             })
-                            // todo:清空密码
                         } else {
                             ElMessage({
                                 message: '网络错误',
