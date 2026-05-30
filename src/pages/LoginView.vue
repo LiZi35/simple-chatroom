@@ -34,7 +34,9 @@
     import { Lock, Message } from '@element-plus/icons-vue'
     import axios, { isAxiosError } from 'axios'
     import { useUserStore } from '@/store/User.ts'
+    import { useRouter } from 'vue-router'
 
+    const router = useRouter()
     const userStore = useUserStore()
     const buttonLoading = ref(false)
 
@@ -68,7 +70,6 @@
                         email: form.value.email,
                         password: form.value.password,
                     })
-                    // todo:登录后跳转
                     if (res.data.id && res.data.email && res.data.nickname) {
                         userStore.$patch({
                             id: res.data.id,
@@ -79,6 +80,9 @@
                             message: res.data.message,
                             type: 'success',
                         })
+                        setTimeout(() => {
+                            router.push({ name: 'ChatView' })
+                        }, 500)
                     } else {
                         ElMessage({
                             message: '未知错误',

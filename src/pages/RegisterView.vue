@@ -42,7 +42,9 @@
     import type { FormInstance, FormItemRule } from 'element-plus'
     import { Lock, Message, User } from '@element-plus/icons-vue'
     import { useUserStore } from '@/store/User.ts'
+    import { useRouter } from 'vue-router'
 
+    const router = useRouter()
     const userStore = useUserStore()
 
     const buttonLoading = ref(false)
@@ -98,7 +100,6 @@
                         password: form.value.password,
                         nickname: form.value.nickname,
                     })
-                    // todo:登录后跳转
                     console.log(res.data)
                     if (res.data.id && res.data.email && res.data.nickname) {
                         userStore.$patch({
@@ -110,6 +111,9 @@
                             message: res.data.message,
                             type: 'success',
                         })
+                        setTimeout(() => {
+                            router.push({ name: 'ChatView' })
+                        }, 500)
                     } else {
                         ElMessage({
                             message: '未知错误',
