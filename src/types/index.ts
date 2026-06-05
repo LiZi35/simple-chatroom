@@ -1,6 +1,6 @@
-export interface userResponse {
-    code: number
-    email: string
-    id: string
-    message: string
+export interface message {
+    messageId: number
+    senderId: string
+    senderNickname: string
+    content: string
 }

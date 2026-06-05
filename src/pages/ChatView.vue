@@ -1,7 +1,9 @@
 <template>
     <div class="Box">
         <div class="header">
-            <el-icon size="25"><ChatDotRound /></el-icon>
+            <el-icon size="25">
+                <ChatDotRound />
+            </el-icon>
             <el-text style="color: black; font-size: large"><b>simple-chatroom</b></el-text>
         </div>
         <div class="chatMain">
@@ -24,6 +26,13 @@
 <script lang="ts" setup>
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
     import { ref } from 'vue'
+    import io from 'socket.io-client'
+    import type { message } from '@/types'
+
+    const socket = io('http://localhost:3000')
+
+    socket.on('messagesList', (messagesList) => {})
+    const messagesList: message[] = ref([])
 
     const text = ref('')
 
@@ -37,7 +46,7 @@
     .Box {
         display: flex;
         flex-direction: column;
-        //padding: 5px;
+        /* padding: 5px; */
         width: 80%;
         min-width: 25em;
         height: 70%;
@@ -46,25 +55,29 @@
         box-shadow: var(--el-box-shadow-dark);
         min-height: 20em;
     }
+
     .header {
         display: flex;
         flex-direction: row;
         border-bottom: 1px solid var(--el-border-color);
         padding: 5px 5px 5px 5px;
     }
+
     .chatMain {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
     }
+
     .messages {
         flex: 1;
     }
+
     .input {
         padding: 5px;
         display: flex;
         height: 2em;
-        //min-height: 80px;
+        /* min-height: 80px; */
         border-top: 1px solid var(--el-border-color);
     }
 </style>
