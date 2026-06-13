@@ -11,12 +11,9 @@
         </div>
         <div class="chatMain">
             <div class="messages">
-                <!--消息列表-->
-                <div class="isSelf">
-                    <div>111</div>
-                </div>
-                <div class="isOther">
-                    <div>222</div>
+                <div v-for="message in messagesList" :key="message.messageId">
+                    <!--消息列表-->
+                    <div :class="judgeSender(message)">{{ message.content }}</div>
                 </div>
             </div>
             <div class="input">
@@ -39,7 +36,9 @@
     import type { message, reqMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
     import { useRouter } from 'vue-router'
+    import { useUserStore } from '@/store/User'
 
+    const userStore = useUserStore()
     const router = useRouter()
     const socket = io('http://localhost:3000', {
         autoConnect: false,
@@ -68,6 +67,7 @@
 
     socket.on('connect', () => {
         connectButtonText.value = '断开'
+        socket.emit('getMessages')
     })
     socket.on('disconnect', () => {
         connectButtonText.value = '连接'
@@ -97,6 +97,13 @@
             socket.disconnect()
         } else {
             socket.connect()
+        }
+    }
+    function judgeSender(message: message) {
+        if (message.senderId == userStore.id) {
+            return 'isSelf'
+        } else {
+            return 'isOther'
         }
     }
 </script>
