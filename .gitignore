@@ -38,3 +38,7 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# unplugin-auto-import & unplugin-vue-components
+auto-imports.d.ts
+components.d.ts
