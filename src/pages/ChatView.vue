@@ -4,7 +4,9 @@
             <el-icon size="25">
                 <ChatDotRound />
             </el-icon>
-            <el-text style="color: black; font-size: large"><b>simple-chatroom</b></el-text>
+            <el-text style="color: black; font-size: large">
+                <b>simple-chatroom</b>
+            </el-text>
             <el-button @click="changeConnect">{{ connectButtonText }}</el-button>
         </div>
         <div class="chatMain">
@@ -34,7 +36,8 @@
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
     import { onMounted, onUnmounted, ref } from 'vue'
     import io from 'socket.io-client'
-    import type { message } from '@/types'
+    import type { message, reqMessagesList } from '@/types'
+    import { ElMessage } from 'element-plus'
 
     const socket = io('http://localhost:3000', { autoConnect: false })
 
@@ -43,9 +46,16 @@
     const text = ref('')
     let timer: ReturnType<typeof setInterval> | null = null
 
-    socket.on('messagesList', (reqMessagesList: message[]) => {
-        messagesList.value = reqMessagesList
-        console.log(messagesList.value)
+    socket.on('messagesList', (reqMessagesList: reqMessagesList) => {
+        if (reqMessagesList.status == 200) {
+            messagesList.value = reqMessagesList.messagesList
+            console.log(messagesList.value)
+        } else {
+            ElMessage({
+                message: reqMessagesList.message,
+                type: 'error',
+            })
+        }
     })
 
     socket.on('connect', () => {

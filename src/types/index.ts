@@ -4,3 +4,8 @@ export interface message {
     senderNickname: string
     content: string
 }
+export interface reqMessagesList {
+    status: number
+    message: string
+    messagesList: message[]
+}
