@@ -38,8 +38,13 @@
     import io from 'socket.io-client'
     import type { message, reqMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
+    import { useRouter } from 'vue-router'
 
-    const socket = io('http://localhost:3000', { autoConnect: false })
+    const router = useRouter()
+    const socket = io('http://localhost:3000', {
+        autoConnect: false,
+        withCredentials: true,
+    })
 
     const connectButtonText = ref('断开')
     const messagesList = ref<message[]>([])
@@ -55,6 +60,9 @@
                 message: reqMessagesList.message,
                 type: 'error',
             })
+            setTimeout(() => {
+                router.push({ name: 'LoginView' })
+            }, 1000)
         }
     })
 

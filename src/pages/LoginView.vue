@@ -66,9 +66,11 @@
             if (valid) {
                 console.log('验证成功')
                 try {
-                    const res = await axios.post('http://127.0.0.1:3000/login', {
+                    const res = await axios.post('http://localhost:3000/login', {
                         email: form.value.email,
                         password: form.value.password,
+                    }, {
+                        withCredentials: true,
                     })
                     if (res.data.id && res.data.email && res.data.nickname) {
                         userStore.$patch({

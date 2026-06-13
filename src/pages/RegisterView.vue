@@ -95,10 +95,12 @@
             if (valid) {
                 console.log('验证成功')
                 try {
-                    const res = await axios.post('http://127.0.0.1:3000/register', {
+                    const res = await axios.post('http://localhost:3000/register', {
                         email: form.value.email,
                         password: form.value.password,
                         nickname: form.value.nickname,
+                    }, {
+                        withCredentials: true,
                     })
                     console.log(res.data)
                     if (res.data.id && res.data.email && res.data.nickname) {
