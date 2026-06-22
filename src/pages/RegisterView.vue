@@ -95,20 +95,31 @@
             if (valid) {
                 console.log('验证成功')
                 try {
-                    const res = await axios.post('http://localhost:3000/register', {
-                        email: form.value.email,
-                        password: form.value.password,
-                        nickname: form.value.nickname,
-                    }, {
-                        withCredentials: true,
-                    })
-                    console.log(res.data)
+                    const res = await axios.post(
+                        'http://localhost:3000/register',
+                        {
+                            email: form.value.email,
+                            password: form.value.password,
+                            nickname: form.value.nickname,
+                        },
+                        {
+                            withCredentials: true,
+                        },
+                    )
                     if (res.data.id && res.data.email && res.data.nickname) {
                         userStore.$patch({
                             id: res.data.id,
                             email: res.data.email,
                             nickname: res.data.nickname,
                         })
+                        localStorage.setItem(
+                            'user',
+                            JSON.stringify({
+                                id: res.data.id,
+                                email: res.data.email,
+                                nickname: res.data.nickname,
+                            }),
+                        )
                         ElMessage({
                             message: res.data.message,
                             type: 'success',
