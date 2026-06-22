@@ -6,7 +6,6 @@ import ChatView from '@/pages/ChatView.vue'
 const router = createRouter({
     history: createWebHistory(),
     routes: [
-        // todo:主页面
         {
             name: 'LoginView',
             path: '/login',
@@ -22,6 +21,10 @@ const router = createRouter({
             path: '/chat',
             component: ChatView,
         },
+        {
+            path: '/',
+            redirect: '/login',
+        }
     ],
 })
 
