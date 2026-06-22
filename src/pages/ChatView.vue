@@ -7,13 +7,20 @@
             <el-text style="color: black; font-size: large">
                 <b>simple-chatroom</b>
             </el-text>
-            <el-button @click="changeConnect">{{ connectButtonText }}</el-button>
+            <div class="headerButtons" style="margin-left: auto">
+                <el-button @click="changeConnect">{{ connectButtonText }}</el-button>
+                <el-button @click="logout">退出</el-button>
+            </div>
         </div>
         <div class="chatMain">
             <div class="messages">
-                <div v-for="message in messagesList" :key="message.messageId">
-                    <!--消息列表-->
-                    <div :class="judgeSender(message)">{{ message.content }}</div>
+                <!--消息列表-->
+                <div
+                    v-for="message in messagesList"
+                    :key="message.messageId"
+                    :class="judgeSender(message)"
+                >
+                    {{ message.content }}
                 </div>
             </div>
             <div class="input">
@@ -31,7 +38,7 @@
 </template>
 <script lang="ts" setup>
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
-    import { onMounted, onUnmounted, ref } from 'vue'
+    import { onMounted, onUnmounted, ref, computed } from 'vue'
     import io from 'socket.io-client'
     import type { message, reqMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
@@ -45,7 +52,8 @@
         withCredentials: true,
     })
 
-    const connectButtonText = ref('断开')
+    // const connectButtonText = ref('断开')
+    const connectButtonText = computed(() => (socket.connected ? '断开' : '连接'))
     const messagesList = ref<message[]>([])
     const text = ref('')
     let timer: ReturnType<typeof setInterval> | null = null
@@ -66,11 +74,18 @@
     })
 
     socket.on('connect', () => {
-        connectButtonText.value = '断开'
         socket.emit('getMessages')
     })
-    socket.on('disconnect', () => {
-        connectButtonText.value = '连接'
+    // socket.on('disconnect', () => {
+    // })
+    socket.on('error', (message: string) => {
+        ElMessage({
+            message: message,
+            type: 'error',
+        })
+        setTimeout(() => {
+            router.push({ name: 'LoginView' })
+        }, 1000)
     })
 
     onMounted(() => {
@@ -87,10 +102,25 @@
         socket.removeAllListeners()
     })
 
+    function logout() {
+        router.push({ name: 'LoginView' })
+        socket.disconnect()
+        localStorage.removeItem('user')
+        userStore.$reset()
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        ElMessage({
+            message: '退出登录成功',
+            type: 'success',
+        })
+    }
     function sendMessage() {
         console.log('SendMessage', text.value)
-        // todo:消息提交
+        const content: string = text.value
         text.value = ''
+        socket.emit('sendMessage', content)
+        setTimeout(() => {
+            socket.emit('getMessages')
+        }, 300)
     }
     function changeConnect() {
         if (socket.connected) {
@@ -156,6 +186,8 @@
         padding: 5px;
         background-color: rgb(35, 88, 168);
         color: white;
+        max-width: 70%;
+        min-width: 20px;
     }
     .isOther {
         margin-right: auto;
@@ -164,5 +196,7 @@
         padding: 5px;
         background-color: rgb(207, 184, 184);
         color: black;
+        max-width: 70%;
+        min-width: 20px;
     }
 </style>
