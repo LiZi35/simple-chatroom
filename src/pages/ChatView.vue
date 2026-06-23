@@ -38,7 +38,7 @@
 </template>
 <script lang="ts" setup>
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
-    import { onMounted, onUnmounted, ref, computed } from 'vue'
+    import { onMounted, onUnmounted, ref } from 'vue'
     import io from 'socket.io-client'
     import type { message, reqMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
@@ -52,8 +52,8 @@
         withCredentials: true,
     })
 
-    // const connectButtonText = ref('断开')
-    const connectButtonText = computed(() => (socket.connected ? '断开' : '连接'))
+    const connectButtonText = ref('断开')
+    // const connectButtonText = computed(() => (socket.connected ? '断开' : '连接'))
     const messagesList = ref<message[]>([])
     const text = ref('')
     let timer: ReturnType<typeof setInterval> | null = null
@@ -74,10 +74,12 @@
     })
 
     socket.on('connect', () => {
+        connectButtonText.value = '断开'
         socket.emit('getMessages')
     })
-    // socket.on('disconnect', () => {
-    // })
+    socket.on('disconnect', () => {
+        connectButtonText.value = '连接'
+    })
     socket.on('error', (message: string) => {
         ElMessage({
             message: message,
@@ -94,7 +96,7 @@
             if (socket.connected) {
                 socket.emit('getMessages')
             }
-        }, 10000)
+        }, 1000)
     })
     onUnmounted(() => {
         if (timer) clearInterval(timer)
@@ -137,7 +139,7 @@
         }
     }
 </script>
-<style style>
+<style scoped>
     .Box {
         display: flex;
         flex-direction: column;
@@ -162,6 +164,8 @@
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        min-width: 0;
+        min-height: 0;
     }
 
     .messages {
@@ -170,6 +174,7 @@
         align-items: baseline;
         flex: 1;
         padding: 5px;
+        overflow: auto;
     }
 
     .input {
@@ -180,7 +185,7 @@
         border-top: 1px solid var(--el-border-color);
     }
     .isSelf {
-        margin-left: auto;
+        align-self: flex-end;
         margin-bottom: 1px;
         border-radius: 13px 0px 13px 13px;
         padding: 5px;
@@ -190,7 +195,7 @@
         min-width: 20px;
     }
     .isOther {
-        margin-right: auto;
+        align-self: flex-start;
         margin-bottom: 1px;
         border-radius: 0px 13px 13px 13px;
         padding: 5px;
