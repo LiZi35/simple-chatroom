@@ -5,4 +5,13 @@ export const useUserStore = defineStore('User', {
         email: JSON.parse(localStorage.getItem('user') || '{}').email,
         nickname: JSON.parse(localStorage.getItem('user') || '{}').nickname,
     }),
+    actions: {
+        isLoggedIn() {
+            if (this.id && this.email && this.nickname) {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
 })

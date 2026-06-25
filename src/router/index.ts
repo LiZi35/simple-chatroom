@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/pages/LoginView.vue'
 import RegisterView from '@/pages/RegisterView.vue'
 import ChatView from '@/pages/ChatView.vue'
+import { useUserStore } from '@/store/User'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,6 +27,20 @@ const router = createRouter({
             redirect: '/login',
         }
     ],
+})
+
+router.beforeEach((to) => {
+    const userStore = useUserStore()
+    // whiteList
+    if (to.name == 'LoginView' || to.name == 'RegisterView') {
+        return true
+    }
+
+    if (to.name == 'ChatView' && userStore.isLoggedIn()) {
+        return true
+    } else {
+        return false
+    }
 })
 
 export default router
