@@ -67,7 +67,7 @@
                 console.log('验证成功')
                 try {
                     const res = await axios.post(
-                        'http://localhost:3000/login',
+                        import.meta.env.VITE_API_URL + '/login',
                         {
                             email: form.value.email,
                             password: form.value.password,
