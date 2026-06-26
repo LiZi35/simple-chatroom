@@ -1,6 +1,6 @@
 <template>
     <div style="background-color: #f5f7fa">
-        <div class="loginPage">
+        <div class="registerPage">
             <h2 style="text-align: center">欢迎注册</h2>
             <br />
             <el-form ref="formRef" :model="form" label-width="auto" :rules="rules">
@@ -161,7 +161,7 @@
     }
 </script>
 <style scoped>
-    .loginPage {
+    .registerPage {
         padding: 30px;
         width: 25em;
         height: auto;
