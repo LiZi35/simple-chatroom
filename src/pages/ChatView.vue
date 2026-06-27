@@ -44,6 +44,7 @@
     import { ElMessage } from 'element-plus'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/store/User'
+    import cookie from 'js-cookie'
 
     const userStore = useUserStore()
     const router = useRouter()
@@ -109,7 +110,7 @@
         socket.disconnect()
         localStorage.removeItem('user')
         userStore.logout()
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        cookie.remove('token')
         ElMessage({
             message: '退出登录成功',
             type: 'success',
