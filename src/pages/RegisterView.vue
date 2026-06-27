@@ -99,11 +99,7 @@
                     form.value.nickname,
                 )
                 if (res.success) {
-                    userStore.$patch({
-                        id: res.id,
-                        email: res.email,
-                        nickname: res.nickname,
-                    })
+                    userStore.login(res.id, res.email, res.nickname)
                     localStorage.setItem(
                         'user',
                         JSON.stringify({

@@ -67,11 +67,7 @@
                 console.log('验证成功')
                 const res = await login(form.value.email, form.value.password)
                 if (res.success) {
-                    userStore.$patch({
-                        id: res.id,
-                        email: res.email,
-                        nickname: res.nickname,
-                    })
+                    userStore.login(res.id, res.email, res.nickname)
                     localStorage.setItem(
                         'user',
                         JSON.stringify({

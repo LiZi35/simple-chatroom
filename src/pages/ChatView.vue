@@ -108,7 +108,7 @@
         router.push({ name: 'LoginView' })
         socket.disconnect()
         localStorage.removeItem('user')
-        userStore.$reset()
+        userStore.logout()
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
         ElMessage({
             message: '退出登录成功',
