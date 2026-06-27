@@ -36,13 +36,12 @@
 </template>
 <script setup lang="ts">
     import { ref } from 'vue'
-    import axios from 'axios'
-    import { isAxiosError } from 'axios'
     import { ElMessage } from 'element-plus'
     import type { FormInstance, FormItemRule } from 'element-plus'
     import { Lock, Message, User } from '@element-plus/icons-vue'
     import { useUserStore } from '@/store/User.ts'
     import { useRouter } from 'vue-router'
+    import { register } from '@/api/auth.ts'
 
     const router = useRouter()
     const userStore = useUserStore()
@@ -94,64 +93,37 @@
         formRef.value.validate(async (valid: boolean) => {
             if (valid) {
                 console.log('验证成功')
-                try {
-                    const res = await axios.post(
-                        import.meta.env.VITE_API_URL + '/register',
-                        {
-                            email: form.value.email,
-                            password: form.value.password,
-                            nickname: form.value.nickname,
-                        },
-                        {
-                            withCredentials: true,
-                        },
+                const res = await register(
+                    form.value.email,
+                    form.value.password,
+                    form.value.nickname,
+                )
+                if (res.success) {
+                    userStore.$patch({
+                        id: res.id,
+                        email: res.email,
+                        nickname: res.nickname,
+                    })
+                    localStorage.setItem(
+                        'user',
+                        JSON.stringify({
+                            id: res.id,
+                            email: res.email,
+                            nickname: res.nickname,
+                        }),
                     )
-                    if (res.data.id && res.data.email && res.data.nickname) {
-                        userStore.$patch({
-                            id: res.data.id,
-                            email: res.data.email,
-                            nickname: res.data.nickname,
-                        })
-                        localStorage.setItem(
-                            'user',
-                            JSON.stringify({
-                                id: res.data.id,
-                                email: res.data.email,
-                                nickname: res.data.nickname,
-                            }),
-                        )
-                        ElMessage({
-                            message: res.data.message,
-                            type: 'success',
-                        })
-                        setTimeout(() => {
-                            router.push({ name: 'ChatView' })
-                        }, 500)
-                    } else {
-                        ElMessage({
-                            message: '未知错误',
-                            type: 'error',
-                        })
-                    }
-                } catch (error) {
-                    if (isAxiosError(error)) {
-                        if (error.response && error.response.data && error.response.data.message) {
-                            ElMessage({
-                                message: error.response.data.message,
-                                type: 'error',
-                            })
-                        } else {
-                            ElMessage({
-                                message: '网络错误',
-                                type: 'error',
-                            })
-                        }
-                    } else {
-                        ElMessage({
-                            message: '未知错误',
-                            type: 'error',
-                        })
-                    }
+                    ElMessage({
+                        type: 'success',
+                        message: res.message,
+                    })
+                    setTimeout(() => {
+                        router.push({ name: 'ChatView' })
+                    }, 500)
+                } else {
+                    ElMessage({
+                        type: 'error',
+                        message: res.message,
+                    })
                 }
             } else {
                 console.log('验证失败')
