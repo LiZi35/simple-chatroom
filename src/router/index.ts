@@ -39,7 +39,7 @@ router.beforeEach((to) => {
     if (to.name == 'ChatView' && userStore.isLoggedIn()) {
         return true
     } else {
-        return false
+        return { name: 'LoginView' }
     }
 })
 
