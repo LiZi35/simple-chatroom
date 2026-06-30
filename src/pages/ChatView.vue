@@ -12,7 +12,7 @@
                 <el-button @click="logoutButton">退出</el-button>
             </div>
         </div>
-        <div class="chatMain">
+        <div class="chatMain" v-loading="notConnected">
             <div class="messages" ref="messagesView">
                 <!--消息列表-->
                 <div
@@ -24,7 +24,7 @@
                 </div>
             </div>
             <div class="input">
-                <el-input v-model="text"></el-input>
+                <el-input v-model="text" @keyup.enter="sendMessage"></el-input>
                 <el-button
                     style="margin-left: 5px"
                     type="primary"
@@ -38,7 +38,7 @@
 </template>
 <script lang="ts" setup>
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
-    import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+    import { nextTick, onMounted, onUnmounted, ref, watch, computed } from 'vue'
     import io from 'socket.io-client'
     import type { message, reqMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
@@ -53,8 +53,9 @@
         withCredentials: true,
     })
 
-    const connectButtonText = ref('断开')
-    // const connectButtonText = computed(() => (socket.connected ? '断开' : '连接'))
+    const isConnected = ref(false)
+    const connectButtonText = computed(() => (isConnected.value ? '断开' : '连接'))
+    const notConnected = computed(() => !isConnected.value)
     const messagesList = ref<message[]>([])
     const messagesView = ref<HTMLDivElement | null>(null)
     const text = ref('')
@@ -73,11 +74,13 @@
     })
 
     socket.on('connect', () => {
-        connectButtonText.value = '断开'
+        // connectButtonText.value = '断开'
+        isConnected.value = true
         socket.emit('getMessages')
     })
     socket.on('disconnect', () => {
-        connectButtonText.value = '连接'
+        // connectButtonText.value = '连接'
+        isConnected.value = false
     })
     socket.on('error', (message: string) => {
         ElMessage({
