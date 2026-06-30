@@ -9,11 +9,11 @@
             </el-text>
             <div class="headerButtons" style="margin-left: auto">
                 <el-button @click="changeConnect">{{ connectButtonText }}</el-button>
-                <el-button @click="logout">退出</el-button>
+                <el-button @click="logoutButton">退出</el-button>
             </div>
         </div>
         <div class="chatMain">
-            <div class="messages">
+            <div class="messages" ref="messagesView">
                 <!--消息列表-->
                 <div
                     v-for="message in messagesList"
@@ -38,13 +38,13 @@
 </template>
 <script lang="ts" setup>
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
-    import { onMounted, onUnmounted, ref } from 'vue'
+    import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
     import io from 'socket.io-client'
     import type { message, reqMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/store/User'
-    import cookie from 'js-cookie'
+    import { logout } from '@/utils/logout'
 
     const userStore = useUserStore()
     const router = useRouter()
@@ -56,8 +56,9 @@
     const connectButtonText = ref('断开')
     // const connectButtonText = computed(() => (socket.connected ? '断开' : '连接'))
     const messagesList = ref<message[]>([])
+    const messagesView = ref<HTMLDivElement | null>(null)
     const text = ref('')
-    let timer: ReturnType<typeof setInterval> | null = null
+    const timer: ReturnType<typeof setInterval> | null = null
 
     socket.on('messagesList', (reqMessagesList: reqMessagesList) => {
         if (reqMessagesList.status == 200) {
@@ -68,9 +69,6 @@
                 message: reqMessagesList.message,
                 type: 'error',
             })
-            setTimeout(() => {
-                router.push({ name: 'LoginView' })
-            }, 1000)
         }
     })
 
@@ -91,13 +89,30 @@
         }, 1000)
     })
 
+    watch(messagesList, () => {
+        nextTick(() => {
+            if (messagesView.value) {
+                const threshold = 25
+                if (
+                    messagesView.value.scrollHeight -
+                        messagesView.value.scrollTop -
+                        messagesView.value.clientHeight >
+                    threshold
+                ) {
+                    messagesView.value.scrollTop = messagesView.value.scrollHeight
+                }
+            }
+        })
+    })
+
+    // hooks
     onMounted(() => {
         socket.connect()
-        timer = setInterval(() => {
-            if (socket.connected) {
-                socket.emit('getMessages')
-            }
-        }, 1000)
+        // timer = setInterval(() => {
+        //     if (socket.connected) {
+        //         socket.emit('getMessages')
+        //     }
+        // }, 1000)
     })
     onUnmounted(() => {
         if (timer) clearInterval(timer)
@@ -105,12 +120,11 @@
         socket.removeAllListeners()
     })
 
-    function logout() {
+    // methods
+    function logoutButton() {
         router.push({ name: 'LoginView' })
         socket.disconnect()
-        localStorage.removeItem('user')
-        userStore.logout()
-        cookie.remove('token')
+        logout()
         ElMessage({
             message: '退出登录成功',
             type: 'success',
@@ -121,9 +135,9 @@
         const content: string = text.value
         text.value = ''
         socket.emit('sendMessage', content)
-        setTimeout(() => {
-            socket.emit('getMessages')
-        }, 300)
+        // setTimeout(() => {
+        //     socket.emit('getMessages')
+        // }, 300)
     }
     function changeConnect() {
         if (socket.connected) {
