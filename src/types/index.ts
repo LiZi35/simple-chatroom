@@ -3,6 +3,7 @@ export interface message {
     senderId: string
     senderNickname: string
     content: string
+    date: Date
 }
 export interface reqMessagesList {
     status: number
