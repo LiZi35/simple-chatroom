@@ -40,7 +40,7 @@
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
     import { nextTick, onMounted, onUnmounted, ref, watch, computed } from 'vue'
     import io from 'socket.io-client'
-    import type { message, reqMessagesList } from '@/types'
+    import type { Message, ResMessagesList } from '@/types'
     import { ElMessage } from 'element-plus'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/store/User'
@@ -56,21 +56,21 @@
     const isConnected = ref(false)
     const connectButtonText = computed(() => (isConnected.value ? '断开' : '连接'))
     const notConnected = computed(() => !isConnected.value)
-    const messagesList = ref<message[]>([])
+    const messagesList = ref<Message[]>([])
     const messagesView = ref<HTMLDivElement | null>(null)
     const text = ref('')
     const timer: ReturnType<typeof setInterval> | null = null
 
-    socket.on('messagesList', (reqMessagesList: reqMessagesList) => {
-        if (reqMessagesList.status == 200) {
-            messagesList.value = reqMessagesList.messagesList.map((message) => {
+    socket.on('messagesList', (resMessagesList: ResMessagesList) => {
+        if (resMessagesList.status == 200) {
+            messagesList.value = resMessagesList.messagesList.map((message) => {
                 message.date = new Date(message.date)
                 return message
             })
             console.log(messagesList.value)
         } else {
             ElMessage({
-                message: reqMessagesList.message,
+                message: resMessagesList.message,
                 type: 'error',
             })
         }
@@ -168,7 +168,7 @@
     function showDate(date: Date) {
         return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`
     }
-    function judgeSender(message: message) {
+    function judgeSender(message: Message) {
         if (message.senderId == userStore.id) {
             return 'isSelf'
         } else {

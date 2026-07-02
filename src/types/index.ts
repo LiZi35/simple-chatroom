@@ -1,12 +1,12 @@
-export interface message {
+export interface Message {
     messageId: number
     senderId: string
     senderNickname: string
     content: string
     date: Date
 }
-export interface reqMessagesList {
+export interface ResMessagesList {
     status: number
     message: string
-    messagesList: message[]
+    messagesList: Message[]
 }
