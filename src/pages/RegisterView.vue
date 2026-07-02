@@ -3,7 +3,7 @@
         <div class="registerPage">
             <h2 style="text-align: center">欢迎注册</h2>
             <br />
-            <el-form ref="formRef" :model="form" label-width="auto" :rules="rules">
+            <el-form ref="formRef" :model="form" label-width="80" :rules="rules">
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="form.email" :prefix-icon="Message" />
                 </el-form-item>
@@ -16,17 +16,15 @@
                 <el-form-item label="确认密码" prop="confirmPassword">
                     <el-input v-model="form.confirmPassword" :prefix-icon="Lock" type="password" />
                 </el-form-item>
-                <el-form-item>
-                    <el-button
-                        type="primary"
-                        style="width: 100%; height: 3em"
-                        :loading="buttonLoading"
-                        @click="submitForm"
-                    >
-                        注册
-                    </el-button>
-                </el-form-item>
             </el-form>
+            <el-button
+                type="primary"
+                style="width: 100%; height: 3em"
+                :loading="buttonLoading"
+                @click="submitForm"
+            >
+                注册
+            </el-button>
             <el-text style="display: block; text-align: center; margin-top: 1em">
                 拥有账号？
                 <router-link to="login"><el-link type="primary">去登录</el-link></router-link>

@@ -3,24 +3,22 @@
         <div class="loginPage">
             <h2 style="text-align: center">欢迎登录</h2>
             <br />
-            <el-form ref="formRef" :model="form" label-width="auto" :rules="rules">
+            <el-form ref="formRef" :model="form" :rules="rules">
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="form.email" :prefix-icon="Message" />
                 </el-form-item>
                 <el-form-item label="密码" prop="password">
                     <el-input v-model="form.password" :prefix-icon="Lock" type="password" />
                 </el-form-item>
-                <el-form-item>
-                    <el-button
-                        type="primary"
-                        style="width: 100%; height: 3em"
-                        :loading="buttonLoading"
-                        @click="submitForm"
-                    >
-                        登录
-                    </el-button>
-                </el-form-item>
             </el-form>
+            <el-button
+                type="primary"
+                style="width: 100%; height: 3em"
+                :loading="buttonLoading"
+                @click="submitForm"
+            >
+                登录
+            </el-button>
             <el-text style="display: block; text-align: center; margin-top: 1em">
                 没有账号？
                 <router-link to="register"><el-link type="primary"> 去注册 </el-link></router-link>
