@@ -63,6 +63,7 @@
     ) => {
         if (!value) {
             callback(new Error('请输入密码'))
+            return
         }
         if (value !== form.value.password) {
             callback(new Error('密码不匹配'))
