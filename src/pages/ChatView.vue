@@ -15,12 +15,12 @@
         <div class="chatMain" v-loading="notConnected">
             <div class="messages" ref="messagesView">
                 <!--消息列表-->
-                <div
-                    v-for="message in messagesList"
-                    :key="message.messageId"
-                    :class="judgeSender(message)"
-                >
-                    {{ message.content }}
+                <div v-for="message in messagesList" :key="message.messageId" class="message">
+                    <!-- 时间戳 -->
+                    <div v-if="judgeDate(message.messageId)" class="time">
+                        {{ showDate(message.date) }}
+                    </div>
+                    <div :class="judgeSender(message)">{{ message.content }}</div>
                 </div>
             </div>
             <div class="input">
@@ -63,7 +63,10 @@
 
     socket.on('messagesList', (reqMessagesList: reqMessagesList) => {
         if (reqMessagesList.status == 200) {
-            messagesList.value = reqMessagesList.messagesList
+            messagesList.value = reqMessagesList.messagesList.map((message) => {
+                message.date = new Date(message.date)
+                return message
+            })
             console.log(messagesList.value)
         } else {
             ElMessage({
@@ -149,6 +152,22 @@
             socket.connect()
         }
     }
+    function judgeDate(messageId: number) {
+        if (messageId == 0) return true
+        const current = messagesList.value[messageId]
+        const previous = messagesList.value[messageId - 1]
+        if (current && previous) {
+            if (current.date.getTime() - previous.date.getTime() > 10 * 60 * 1000) {
+                return true
+            } else {
+                return false
+            }
+        }
+        return true
+    }
+    function showDate(date: Date) {
+        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`
+    }
     function judgeSender(message: message) {
         if (message.senderId == userStore.id) {
             return 'isSelf'
@@ -170,14 +189,12 @@
         box-shadow: var(--el-box-shadow-dark);
         min-height: 20em;
     }
-
     .header {
         display: flex;
         flex-direction: row;
         border-bottom: 1px solid var(--el-border-color);
         padding: 5px 5px 5px 5px;
     }
-
     .chatMain {
         display: flex;
         flex-direction: column;
@@ -185,16 +202,19 @@
         min-width: 0;
         min-height: 0;
     }
-
     .messages {
         display: flex;
         flex-direction: column;
-        align-items: baseline;
+        align-items: stretch;
         flex: 1;
         padding: 5px;
         overflow: auto;
     }
-
+    .message {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1px;
+    }
     .input {
         padding: 5px;
         display: flex;
@@ -204,7 +224,6 @@
     }
     .isSelf {
         align-self: flex-end;
-        margin-bottom: 1px;
         border-radius: 13px 0px 13px 13px;
         padding: 5px;
         background-color: rgb(35, 88, 168);
@@ -214,12 +233,20 @@
     }
     .isOther {
         align-self: flex-start;
-        margin-bottom: 1px;
         border-radius: 0px 13px 13px 13px;
         padding: 5px;
         background-color: rgb(207, 184, 184);
         color: black;
         max-width: 70%;
         min-width: 20px;
+    }
+    .time {
+        align-self: center;
+        justify-self: baseline;
+        background-color: rgba(107, 102, 102, 0.548);
+        color: white;
+        padding: 1px 2px;
+        font-size: small;
+        border-radius: 3px;
     }
 </style>
