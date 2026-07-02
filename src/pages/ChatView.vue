@@ -94,6 +94,32 @@
             router.push({ name: 'LoginView' })
         }, 1000)
     })
+    socket.on('connect_error', (err) => {
+        if (
+            err.message == 'UNKNOWN_USER' ||
+            err.message == 'ABNORMAL_USER' ||
+            err.message == 'EXPIRED_USER' ||
+            err.message == 'NOT_LOGGED_IN'
+        ) {
+            if (err.message == 'UNKNOWN_USER') {
+                ElMessage.error({ message: '未知用户' })
+            } else if (err.message == 'ABNORMAL_USER') {
+                ElMessage.error({ message: '异常登陆' })
+            } else if (err.message == 'EXPIRED_USER') {
+                ElMessage.error({ message: '登陆已过期' })
+            } else if (err.message == 'NOT_LOGGED_IN') {
+                ElMessage.error({ message: '未登录' })
+            }
+            setTimeout(() => {
+                router.push({ name: 'LoginView' })
+            }, 1000)
+        } else {
+            ElMessage({
+                type: 'error',
+                message: '网络错误',
+            })
+        }
+    })
 
     watch(messagesList, () => {
         nextTick(() => {
