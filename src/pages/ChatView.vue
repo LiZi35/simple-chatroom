@@ -250,7 +250,7 @@
     }
     .isSelf {
         align-self: flex-end;
-        border-radius: 13px 0px 13px 13px;
+        border-radius: 13px 0 13px 13px;
         padding: 5px;
         background-color: rgb(35, 88, 168);
         color: white;
@@ -259,7 +259,7 @@
     }
     .isOther {
         align-self: flex-start;
-        border-radius: 0px 13px 13px 13px;
+        border-radius: 0 13px 13px 13px;
         padding: 5px;
         background-color: rgb(207, 184, 184);
         color: black;
