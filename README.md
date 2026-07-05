@@ -1,48 +1,29 @@
-# simple-clatroom
+# simple-chatroom
 
-This template should help get you started developing with Vue 3 in Vite.
+一个支持文字聊天的网页
 
-## Recommended IDE Setup
+后端为[chat-server](https://github.com/LiZi35/chat-server)
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 截图
+![PixPin_2026-07-05_20-48-32.png](assets/PixPin_2026-07-05_20-48-32.png)
+![PixPin_2026-07-05_20-49-23.png](assets/PixPin_2026-07-05_20-49-23.png)
 
-## Recommended Browser Setup
+## 运行
+使用 vscode 等编辑器编辑`.env.production`。例如：
+```ini
+# 后端的地址
+VITE_API_BASE_URL=https://example.com:3000
+```
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+安装依赖：
+```shell
 pnpm install
 ```
-
-### Compile and Hot-Reload for Development
-
-```sh
-pnpm dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
+构建：
+```shell
 pnpm build
 ```
+将生成的dist文件夹上传到web服务器并启动后端即可
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```
+## 其他
+~~本项目主要为古法编程而成~~
