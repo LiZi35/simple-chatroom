@@ -62,7 +62,7 @@
     const timer: ReturnType<typeof setInterval> | null = null
 
     socket.on('messagesList', (resMessagesList: ResMessagesList) => {
-        if (resMessagesList.status == 200) {
+        if (resMessagesList.status === 200) {
             messagesList.value = resMessagesList.messagesList.map((message) => {
                 message.date = new Date(message.date)
                 return message
@@ -96,18 +96,18 @@
     })
     socket.on('connect_error', (err) => {
         if (
-            err.message == 'UNKNOWN_USER' ||
-            err.message == 'ABNORMAL_USER' ||
-            err.message == 'EXPIRED_USER' ||
-            err.message == 'NOT_LOGGED_IN'
+            err.message === 'UNKNOWN_USER' ||
+            err.message === 'ABNORMAL_USER' ||
+            err.message === 'EXPIRED_USER' ||
+            err.message === 'NOT_LOGGED_IN'
         ) {
-            if (err.message == 'UNKNOWN_USER') {
+            if (err.message === 'UNKNOWN_USER') {
                 ElMessage.error({ message: '未知用户' })
-            } else if (err.message == 'ABNORMAL_USER') {
+            } else if (err.message === 'ABNORMAL_USER') {
                 ElMessage.error({ message: '异常登陆' })
-            } else if (err.message == 'EXPIRED_USER') {
+            } else if (err.message === 'EXPIRED_USER') {
                 ElMessage.error({ message: '登陆已过期' })
-            } else if (err.message == 'NOT_LOGGED_IN') {
+            } else if (err.message === 'NOT_LOGGED_IN') {
                 ElMessage.error({ message: '未登录' })
             }
             setTimeout(() => {
@@ -179,23 +179,23 @@
         }
     }
     function judgeDate(messageId: number) {
-        if (messageId == 0) return true
-        const current = messagesList.value[messageId]
-        const previous = messagesList.value[messageId - 1]
+        if (messageId === 1) return true
+        const current = messagesList.value[messageId - 1]
+        const previous = messagesList.value[messageId - 2]
         if (current && previous) {
-            if (current.date.getTime() - previous.date.getTime() > 10 * 60 * 1000) {
-                return true
-            } else {
-                return false
-            }
+            return current.date.getTime() - previous.date.getTime() > 10 * 60 * 1000
         }
         return true
     }
     function showDate(date: Date) {
-        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`
+        if (date.getMinutes() < 10) {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:0${date.getMinutes()}`
+        } else {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`
+        }
     }
     function judgeSender(message: Message) {
-        if (message.senderId == userStore.id) {
+        if (message.senderId === userStore.id) {
             return 'isSelf'
         } else {
             return 'isOther'

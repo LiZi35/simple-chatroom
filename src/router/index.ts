@@ -32,11 +32,11 @@ const router = createRouter({
 router.beforeEach((to) => {
     const userStore = useUserStore()
     // whiteList
-    if (to.name == 'LoginView' || to.name == 'RegisterView') {
+    if (to.name === 'LoginView' || to.name === 'RegisterView') {
         return true
     }
 
-    if (to.name == 'ChatView' && userStore.isLoggedIn()) {
+    if (to.name === 'ChatView' && userStore.isLoggedIn()) {
         return true
     } else {
         return { name: 'LoginView' }
