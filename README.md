@@ -9,6 +9,14 @@
 ![PixPin_2026-07-05_20-49-23.png](assets/PixPin_2026-07-05_20-49-23.png)
 
 ## 运行
+clone 本项目
+```shell
+git clone https://github.com/LiZi35/simple-chatroom.git
+```
+```shell
+cd simple-chatroom
+```
+
 使用 vscode 等编辑器编辑`.env.production`。例如：
 ```ini
 # 后端的地址
