@@ -4,11 +4,26 @@
             <h2 style="text-align: center">欢迎注册</h2>
             <br />
             <el-form ref="formRef" :model="form" label-width="80" :rules="rules">
+                <el-form-item label="昵称" prop="nickname">
+                    <el-input v-model="form.nickname" :prefix-icon="User" />
+                </el-form-item>
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="form.email" :prefix-icon="Message" />
                 </el-form-item>
-                <el-form-item label="昵称" prop="nickname">
-                    <el-input v-model="form.nickname" :prefix-icon="User" />
+                <el-form-item label="验证码" prop="verifyCode">
+                    <el-input
+                        v-model="form.verifyCode"
+                        :prefix-icon="CircleCheck"
+                        style="width: 70%"
+                    />
+                    <el-button
+                        style="width: 30%"
+                        @click="verifyButton"
+                        :loading="sending"
+                        :disabled="countdownNumber > 0"
+                    >
+                        {{ countdownNumber > 0 ? `${countdownNumber}s秒后重试` : '发送验证码' }}
+                    </el-button>
                 </el-form-item>
                 <el-form-item label="密码" prop="password">
                     <el-input v-model="form.password" :prefix-icon="Lock" type="password" />
@@ -36,23 +51,29 @@
     import { ref } from 'vue'
     import { ElMessage } from 'element-plus'
     import type { FormInstance, FormItemRule } from 'element-plus'
-    import { Lock, Message, User } from '@element-plus/icons-vue'
+    import { Lock, Message, User, CircleCheck } from '@element-plus/icons-vue'
     import { useUserStore } from '@/store/User.ts'
     import { useRouter } from 'vue-router'
-    import { register } from '@/api/auth.ts'
+    import { register, sendVerifyCode } from '@/api/auth.ts'
+    import validator from 'validator'
+    import { useCountdown } from '@/hooks/useCountdown.ts'
+
+    const { start: startCount, countdown: countdownNumber } = useCountdown()
 
     const router = useRouter()
     const userStore = useUserStore()
 
     const buttonLoading = ref(false)
+    const sending = ref(false)
 
     const form = ref({
         email: '',
         nickname: '',
+        verifyCode: '',
         password: '',
         confirmPassword: '',
     })
-    const formRef = ref<FormInstance>()
+    const formRef = ref<FormInstance | undefined>()
 
     const checkPassword = (
         rule: FormItemRule,
@@ -85,6 +106,37 @@
             { required: true, message: '请输入密码', trigger: 'blur' },
             { validator: checkPassword, trigger: 'blur' },
         ],
+        verifyCode: [
+            { required: true, message: '请输入验证码', trigger: 'blur' },
+            {
+                pattern: /^\d{6}$/,
+                message: '请输入6位数字验证码',
+                trigger: 'blur',
+            },
+        ],
+    }
+    const verifyButton = async () => {
+        sending.value = true
+        if (!form.value.email) {
+            ElMessage.error({ message: '请输入邮箱' })
+            sending.value = false
+            return
+        }
+        if (!validator.isEmail(form.value.email)) {
+            ElMessage.error({ message: '邮箱格式不正确' })
+            sending.value = false
+            return
+        }
+        const result = await sendVerifyCode(form.value.email)
+        if (result.success) {
+            ElMessage.success({ message: result.message })
+            sending.value = false
+            startCount()
+        } else {
+            ElMessage.error({ message: result.message })
+            sending.value = false
+        }
+        return
     }
     const submitForm = async () => {
         if (!formRef.value) return
@@ -96,6 +148,7 @@
                     form.value.email,
                     form.value.password,
                     form.value.nickname,
+                    form.value.verifyCode,
                 )
                 if (res.success) {
                     userStore.login(res.id, res.email, res.nickname)
