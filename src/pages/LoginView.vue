@@ -19,10 +19,18 @@
             >
                 登录
             </el-button>
-            <el-text style="display: block; text-align: center; margin-top: 1em">
-                没有账号？
-                <router-link to="register"><el-link type="primary"> 去注册 </el-link></router-link>
-            </el-text>
+            <div
+                style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 4px;
+                    margin-top: 1em;
+                "
+            >
+                <el-text> 没有账号？</el-text>
+                <el-link type="primary" @click="router.push('/register')"> 去注册 </el-link>
+            </div>
         </div>
     </div>
 </template>

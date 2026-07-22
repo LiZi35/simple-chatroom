@@ -40,10 +40,18 @@
             >
                 注册
             </el-button>
-            <el-text style="display: block; text-align: center; margin-top: 1em">
-                拥有账号？
-                <router-link to="login"><el-link type="primary">去登录</el-link></router-link>
-            </el-text>
+            <div
+                style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 4px;
+                    margin-top: 1em;
+                "
+            >
+                <el-text> 拥有账号？</el-text>
+                <el-link type="primary" @click="router.push('/login')"> 去登录 </el-link>
+            </div>
         </div>
     </div>
 </template>
