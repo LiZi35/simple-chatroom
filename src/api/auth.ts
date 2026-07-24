@@ -6,9 +6,59 @@ const http = axios.create({
     timeout: 10000,
 })
 
-export async function sendVerifyCode(email: string) {
+export async function sendVerifyCode(email: string, type: string) {
     try {
-        const res = await http.post('/sendVerifyCode', { email: email })
+        const res = await http.post('/sendVerifyCode', { email: email, type: type })
+        if (res.data.code === 200) {
+            return {
+                success: true,
+                status: 'success',
+                message: res.data.message,
+                resData: res.data,
+            }
+        } else {
+            return {
+                success: false,
+                status: 'error',
+                message: res.data.message,
+                resData: res.data,
+            }
+        }
+    } catch (error) {
+        if (isAxiosError(error)) {
+            if (error.response && error.response.data && error.response.data.message) {
+                return {
+                    success: false,
+                    status: 'error',
+                    message: error.response.data.message,
+                    resData: error.response.data,
+                }
+            } else {
+                return {
+                    success: false,
+                    status: 'error',
+                    message: '网络错误',
+                    resData: error,
+                }
+            }
+        } else {
+            return {
+                success: false,
+                status: 'error',
+                message: '未知错误',
+                resData: error,
+            }
+        }
+    }
+}
+
+export async function forgetPassword(email: string, verifyCode: string, newPassword: string) {
+    try {
+        const res = await http.post('/forgetPassword', {
+            email: email,
+            verifyCode: verifyCode,
+            newPassword: newPassword,
+        })
         if (res.data.code === 200) {
             return {
                 success: true,

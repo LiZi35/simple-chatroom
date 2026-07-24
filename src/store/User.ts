@@ -10,11 +10,7 @@ export const useUserStore = defineStore('User', {
     },
     actions: {
         isLoggedIn() {
-            if (this.id && this.email && this.nickname) {
-                return true
-            } else {
-                return false
-            }
+            return !!(this.id && this.email && this.nickname)
         },
         login(id: string, email: string, nickname: string) {
             this.id = id
@@ -25,6 +21,6 @@ export const useUserStore = defineStore('User', {
             this.id = ''
             this.email = ''
             this.nickname = ''
-        }
-    }
+        },
+    },
 })

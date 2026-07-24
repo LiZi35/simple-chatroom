@@ -135,7 +135,7 @@
             sending.value = false
             return
         }
-        const result = await sendVerifyCode(form.value.email)
+        const result = await sendVerifyCode(form.value.email, 'register')
         if (result.success) {
             ElMessage.success({ message: result.message })
             sending.value = false

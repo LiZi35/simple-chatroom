@@ -1,5 +1,5 @@
-import cookies from "js-cookie";
-import { useUserStore } from "@/store/User";
+import cookies from 'js-cookie'
+import { useUserStore } from '@/store/User'
 
 export function logout() {
     const userStore = useUserStore()
