@@ -6,7 +6,61 @@ const http = axios.create({
     timeout: 10000,
 })
 
-export async function sendVerifyCode(email: string, type: string) {
+interface ErrorResponse {
+    success: false
+    status: string
+    message: string
+    errorTree?: { errors: string[]; properties: { [key: string]: string[] } }
+    resData: unknown
+}
+
+function errorHandler(error: unknown): ErrorResponse {
+    if (isAxiosError(error)) {
+        if (error.response && error.response.data && error.response.data.message) {
+            if (error.response.data.errorTree) {
+                return {
+                    success: false,
+                    status: 'InputError',
+                    message: error.response.data.message,
+                    errorTree: error.response.data.errorTree,
+                    resData: error.response.data,
+                }
+            }
+            return {
+                success: false,
+                status: 'error',
+                message: error.response.data.message,
+                resData: error.response.data,
+            }
+        } else {
+            return {
+                success: false,
+                status: 'error',
+                message: '网络错误',
+                resData: error,
+            }
+        }
+    } else {
+        return {
+            success: false,
+            status: 'error',
+            message: '未知错误',
+            resData: error,
+        }
+    }
+}
+
+interface SendVerifyCodeSuccessResponse {
+    success: true
+    status: string
+    message: string
+    resData: unknown
+}
+
+export async function sendVerifyCode(
+    email: string,
+    type: string,
+): Promise<SendVerifyCodeSuccessResponse | ErrorResponse> {
     try {
         const res = await http.post('/sendVerifyCode', { email: email, type: type })
         if (res.data.code === 200) {
@@ -25,34 +79,22 @@ export async function sendVerifyCode(email: string, type: string) {
             }
         }
     } catch (error) {
-        if (isAxiosError(error)) {
-            if (error.response && error.response.data && error.response.data.message) {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: error.response.data.message,
-                    resData: error.response.data,
-                }
-            } else {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: '网络错误',
-                    resData: error,
-                }
-            }
-        } else {
-            return {
-                success: false,
-                status: 'error',
-                message: '未知错误',
-                resData: error,
-            }
-        }
+        return errorHandler(error)
     }
 }
 
-export async function forgetPassword(email: string, verifyCode: string, newPassword: string) {
+interface ForgetPasswordSuccessResponse {
+    success: true
+    status: string
+    message: string
+    resData: unknown
+}
+
+export async function forgetPassword(
+    email: string,
+    verifyCode: string,
+    newPassword: string,
+): Promise<ForgetPasswordSuccessResponse | ErrorResponse> {
     try {
         const res = await http.post('/forgetPassword', {
             email: email,
@@ -75,34 +117,24 @@ export async function forgetPassword(email: string, verifyCode: string, newPassw
             }
         }
     } catch (error) {
-        if (isAxiosError(error)) {
-            if (error.response && error.response.data && error.response.data.message) {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: error.response.data.message,
-                    resData: error.response.data,
-                }
-            } else {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: '网络错误',
-                    resData: error,
-                }
-            }
-        } else {
-            return {
-                success: false,
-                status: 'error',
-                message: '未知错误',
-                resData: error,
-            }
-        }
+        return errorHandler(error)
     }
 }
 
-export async function login(email: string, password: string) {
+interface LoginSuccessResponse {
+    success: true
+    status: string
+    message: string
+    resData: unknown
+    id: string
+    email: string
+    nickname: string
+}
+
+export async function login(
+    email: string,
+    password: string,
+): Promise<LoginSuccessResponse | ErrorResponse> {
     try {
         const res = await http.post('/login', {
             email: email,
@@ -127,34 +159,26 @@ export async function login(email: string, password: string) {
             }
         }
     } catch (error) {
-        if (isAxiosError(error)) {
-            if (error.response && error.response.data && error.response.data.message) {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: error.response.data.message,
-                    resData: error.response.data,
-                }
-            } else {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: '网络错误',
-                    resData: error,
-                }
-            }
-        } else {
-            return {
-                success: false,
-                status: 'error',
-                message: '未知错误',
-                resData: error,
-            }
-        }
+        return errorHandler(error)
     }
 }
 
-export async function register(email: string, password: string, nickname: string, code: string) {
+interface RegisterSuccessResponse {
+    success: true
+    status: string
+    message: string
+    resData: unknown
+    id: string
+    email: string
+    nickname: string
+}
+
+export async function register(
+    email: string,
+    password: string,
+    nickname: string,
+    code: string,
+): Promise<RegisterSuccessResponse | ErrorResponse> {
     try {
         const res = await http.post('/register', {
             email: email,
@@ -181,29 +205,6 @@ export async function register(email: string, password: string, nickname: string
             }
         }
     } catch (error) {
-        if (isAxiosError(error)) {
-            if (error.response && error.response.data && error.response.data.message) {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: error.response.data.message,
-                    resData: error.response.data,
-                }
-            } else {
-                return {
-                    success: false,
-                    status: 'error',
-                    message: '网络错误',
-                    resData: error,
-                }
-            }
-        } else {
-            return {
-                success: false,
-                status: 'error',
-                message: '未知错误',
-                resData: error,
-            }
-        }
+        return errorHandler(error)
     }
 }
