@@ -5,14 +5,19 @@
         label-width="80"
         :rules="forgetPasswordRules"
     >
-        <el-form-item label="邮箱" prop="email">
-            <el-input v-model="forgetPasswordForm.email" :prefix-icon="Message" />
+        <el-form-item label="邮箱" prop="email" :error="serverError.email">
+            <el-input
+                v-model="forgetPasswordForm.email"
+                :prefix-icon="Message"
+                @input="clearServerError('email')"
+            />
         </el-form-item>
-        <el-form-item label="验证码" prop="verifyCode">
+        <el-form-item label="验证码" prop="verifyCode" :error="serverError.verifyCode">
             <el-input
                 v-model="forgetPasswordForm.verifyCode"
                 :prefix-icon="CircleCheck"
                 style="width: 70%"
+                @input="clearServerError('verifyCode')"
             />
             <el-button
                 style="width: 30%"
@@ -27,8 +32,13 @@
                 }}
             </el-button>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-            <el-input v-model="forgetPasswordForm.password" :prefix-icon="Lock" type="password" />
+        <el-form-item label="密码" prop="password" :error="serverError.newPassword">
+            <el-input
+                v-model="forgetPasswordForm.password"
+                :prefix-icon="Lock"
+                type="password"
+                @input="clearServerError('newPassword')"
+            />
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
             <el-input
@@ -44,7 +54,7 @@
     import { ref } from 'vue'
     import { ElMessage, type FormInstance, type FormItemRule } from 'element-plus'
     import { useCountdown } from '@/hooks/useCountdown.ts'
-    import { forgetPassword, sendVerifyCode } from '@/api/auth.ts'
+    import { type ApiValidationError, forgetPassword, sendVerifyCode } from '@/api/auth.ts'
     import { CircleCheck, Lock, Message } from '@element-plus/icons-vue'
     import validator from 'validator'
 
@@ -60,6 +70,31 @@
         password: '',
         confirmPassword: '',
     })
+
+    const serverError = ref<Record<string, string>>({})
+
+    function clearServerError(key?: string) {
+        if (!key) {
+            Object.keys(serverError).forEach((key) => {
+                delete serverError.value[key]
+            })
+            return
+        }
+        delete serverError.value[key]
+    }
+    function applyServerError(issues: ApiValidationError[]) {
+        clearServerError()
+        const errors = issues.map((issue) => ({
+            field: issue.path.map(String).join('.'),
+            code: issue.code,
+            message: issue.message,
+        }))
+        errors.forEach((error) => {
+            if (error.field && !serverError.value[error.field]) {
+                serverError.value[error.field] = error.message
+            }
+        })
+    }
 
     defineProps({})
     defineExpose({
@@ -86,7 +121,15 @@
             forgetPasswordVerityCodeSending.value = false
             forgetPasswordStartCount()
         } else {
-            ElMessage.error({ message: result.message })
+            if (result.issues) {
+                applyServerError(result.issues)
+            }
+            if (!result.issues) {
+                ElMessage({
+                    type: 'error',
+                    message: result.message,
+                })
+            }
             forgetPasswordVerityCodeSending.value = false
         }
         return
@@ -107,19 +150,24 @@
                         type: 'success',
                         message: res.message,
                     })
+                    setTimeout(() => {
+                        forgetPasswordDialogVisible.value = false
+                    }, 500)
                 } else {
-                    ElMessage({
-                        type: 'error',
-                        message: res.message,
-                    })
+                    if (res.issues) {
+                        applyServerError(res.issues)
+                    }
+                    if (!res.issues) {
+                        ElMessage({
+                            type: 'error',
+                            message: res.message,
+                        })
+                    }
                 }
+                forgetPasswordButtonLoading.value = false
             } else {
                 console.log('验证失败')
             }
-            forgetPasswordButtonLoading.value = false
-            setTimeout(() => {
-                forgetPasswordDialogVisible.value = false
-            }, 500)
         })
     }
 

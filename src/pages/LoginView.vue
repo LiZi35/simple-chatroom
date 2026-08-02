@@ -19,11 +19,20 @@
             <h2 style="text-align: center">欢迎登录</h2>
             <br />
             <el-form ref="formRef" :model="form" :rules="rules">
-                <el-form-item label="邮箱" prop="email">
-                    <el-input v-model="form.email" :prefix-icon="Message" />
+                <el-form-item label="邮箱" prop="email" :error="serverError.email">
+                    <el-input
+                        v-model="form.email"
+                        :prefix-icon="Message"
+                        @input="clearServerError('email')"
+                    />
                 </el-form-item>
-                <el-form-item label="密码" prop="password">
-                    <el-input v-model="form.password" :prefix-icon="Lock" type="password" />
+                <el-form-item label="密码" prop="password" :error="serverError.password">
+                    <el-input
+                        v-model="form.password"
+                        :prefix-icon="Lock"
+                        type="password"
+                        @input="clearServerError('password')"
+                    />
                 </el-form-item>
             </el-form>
             <el-button
@@ -64,7 +73,7 @@
     import { useUserStore } from '@/store/User.ts'
     import { useRouter } from 'vue-router'
     import forgetPassword from '@/components/forgetPassword.vue'
-    import { login } from '@/api/auth.ts'
+    import { type ApiValidationError, login } from '@/api/auth.ts'
 
     const router = useRouter()
     const userStore = useUserStore()
@@ -78,6 +87,31 @@
         email: '',
         password: '',
     })
+
+    const serverError = ref<Record<string, string>>({})
+
+    function clearServerError(key?: string) {
+        if (!key) {
+            Object.keys(serverError).forEach((key) => {
+                delete serverError.value[key]
+            })
+            return
+        }
+        delete serverError.value[key]
+    }
+    function applyServerError(issues: ApiValidationError[]) {
+        clearServerError()
+        const errors = issues.map((issue) => ({
+            field: issue.path.map(String).join('.'),
+            code: issue.code,
+            message: issue.message,
+        }))
+        errors.forEach((error) => {
+            if (error.field && !serverError.value[error.field]) {
+                serverError.value[error.field] = error.message
+            }
+        })
+    }
 
     const rules = {
         email: [
@@ -116,10 +150,15 @@
                         router.push({ name: 'ChatView' })
                     }, 500)
                 } else {
-                    ElMessage({
-                        type: 'error',
-                        message: res.message,
-                    })
+                    if (res.issues) {
+                        applyServerError(res.issues)
+                    }
+                    if (!res.issues) {
+                        ElMessage({
+                            type: 'error',
+                            message: res.message,
+                        })
+                    }
                 }
             } else {
                 console.log('验证失败')

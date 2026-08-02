@@ -4,17 +4,26 @@
             <h2 style="text-align: center">欢迎注册</h2>
             <br />
             <el-form ref="formRef" :model="form" label-width="80" :rules="rules">
-                <el-form-item label="昵称" prop="nickname">
-                    <el-input v-model="form.nickname" :prefix-icon="User" />
+                <el-form-item label="昵称" prop="nickname" :error="serverError.nickname">
+                    <el-input
+                        v-model="form.nickname"
+                        :prefix-icon="User"
+                        @input="clearServerError('nickname')"
+                    />
                 </el-form-item>
-                <el-form-item label="邮箱" prop="email">
-                    <el-input v-model="form.email" :prefix-icon="Message" />
+                <el-form-item label="邮箱" prop="email" :error="serverError.email">
+                    <el-input
+                        v-model="form.email"
+                        :prefix-icon="Message"
+                        @input="clearServerError('email')"
+                    />
                 </el-form-item>
-                <el-form-item label="验证码" prop="verifyCode">
+                <el-form-item label="验证码" prop="verifyCode" :error="serverError.verifyCode">
                     <el-input
                         v-model="form.verifyCode"
                         :prefix-icon="CircleCheck"
                         style="width: 70%"
+                        @input="clearServerError('verifyCode')"
                     />
                     <el-button
                         style="width: 30%"
@@ -25,8 +34,13 @@
                         {{ countdownNumber > 0 ? `${countdownNumber}s秒后重试` : '发送验证码' }}
                     </el-button>
                 </el-form-item>
-                <el-form-item label="密码" prop="password">
-                    <el-input v-model="form.password" :prefix-icon="Lock" type="password" />
+                <el-form-item label="密码" prop="password" :error="serverError.password">
+                    <el-input
+                        v-model="form.password"
+                        :prefix-icon="Lock"
+                        type="password"
+                        @input="clearServerError('password')"
+                    />
                 </el-form-item>
                 <el-form-item label="确认密码" prop="confirmPassword">
                     <el-input v-model="form.confirmPassword" :prefix-icon="Lock" type="password" />
@@ -62,7 +76,7 @@
     import { Lock, Message, User, CircleCheck } from '@element-plus/icons-vue'
     import { useUserStore } from '@/store/User.ts'
     import { useRouter } from 'vue-router'
-    import { register, sendVerifyCode } from '@/api/auth.ts'
+    import { type ApiValidationError, register, sendVerifyCode } from '@/api/auth.ts'
     import validator from 'validator'
     import { useCountdown } from '@/hooks/useCountdown.ts'
 
@@ -82,6 +96,31 @@
         confirmPassword: '',
     })
     const formRef = ref<FormInstance | undefined>()
+
+    const serverError = ref<Record<string, string>>({})
+
+    function clearServerError(key?: string) {
+        if (!key) {
+            Object.keys(serverError).forEach((key) => {
+                delete serverError.value[key]
+            })
+            return
+        }
+        delete serverError.value[key]
+    }
+    function applyServerError(issues: ApiValidationError[]) {
+        clearServerError()
+        const errors = issues.map((issue) => ({
+            field: issue.path.map(String).join('.'),
+            code: issue.code,
+            message: issue.message,
+        }))
+        errors.forEach((error) => {
+            if (error.field && !serverError.value[error.field]) {
+                serverError.value[error.field] = error.message
+            }
+        })
+    }
 
     const checkPassword = (
         rule: FormItemRule,
@@ -141,6 +180,11 @@
             sending.value = false
             startCount()
         } else {
+            if (result.issues) {
+                applyServerError(result.issues)
+                sending.value = false
+                return
+            }
             ElMessage.error({ message: result.message })
             sending.value = false
         }
@@ -176,10 +220,15 @@
                         router.push({ name: 'ChatView' })
                     }, 500)
                 } else {
-                    ElMessage({
-                        type: 'error',
-                        message: res.message,
-                    })
+                    if (res.issues) {
+                        applyServerError(res.issues)
+                    }
+                    if (!res.issues) {
+                        ElMessage({
+                            type: 'error',
+                            message: res.message,
+                        })
+                    }
                 }
             } else {
                 console.log('验证失败')

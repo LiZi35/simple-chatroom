@@ -10,19 +10,24 @@ interface ErrorResponse {
     success: false
     status: string
     message: string
-    errorTree?: { errors: string[]; properties: { [key: string]: string[] } }
+    issues?: ApiValidationError[]
     resData: unknown
+}
+export interface ApiValidationError {
+    path: string[]
+    code: string
+    message: string
 }
 
 function errorHandler(error: unknown): ErrorResponse {
     if (isAxiosError(error)) {
         if (error.response && error.response.data && error.response.data.message) {
-            if (error.response.data.errorTree) {
+            if (error.response.data.issues) {
                 return {
                     success: false,
                     status: 'InputError',
                     message: error.response.data.message,
-                    errorTree: error.response.data.errorTree,
+                    issues: error.response.data.issues,
                     resData: error.response.data,
                 }
             }
