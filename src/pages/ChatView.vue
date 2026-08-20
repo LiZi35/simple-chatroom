@@ -13,16 +13,16 @@
             </div>
         </div>
         <div class="chatMain" v-loading="notConnected">
-            <div class="messages" ref="messagesView">
+            <el-scrollbar class="messages" ref="messagesView" @scroll="scrolling">
                 <!--消息列表-->
-                <div v-for="message in messagesList" :key="message.messageId" class="message">
+                <div v-for="[, message] in messagesList" :key="message.messageId" class="message">
                     <!-- 时间戳 -->
                     <div v-if="judgeDate(message.messageId)" class="time">
                         {{ showDate(message.date) }}
                     </div>
                     <div :class="judgeSender(message)">{{ message.content }}</div>
                 </div>
-            </div>
+            </el-scrollbar>
             <div class="input">
                 <el-input v-model="text" @keyup.enter="sendMessage"></el-input>
                 <el-button
@@ -40,8 +40,8 @@
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
     import { nextTick, onMounted, onUnmounted, ref, watch, computed } from 'vue'
     import io from 'socket.io-client'
-    import type { Message, ResMessagesList } from '@/types'
-    import { ElMessage } from 'element-plus'
+    import type { Message, ResLimitMessagesList, ResMessagesList } from '@/types'
+    import { ElMessage, type ScrollbarInstance } from 'element-plus'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/store/User'
     import { logout } from '@/utils/logout'
@@ -56,33 +56,71 @@
     const isConnected = ref(false)
     const connectButtonText = computed(() => (isConnected.value ? '断开' : '连接'))
     const notConnected = computed(() => !isConnected.value)
-    const messagesList = ref<Message[]>([])
-    const messagesView = ref<HTMLDivElement | null>(null)
+    const messagesList = ref(new Map<number, Message>())
+    const messagesView = ref<ScrollbarInstance | null>(null)
     const text = ref('')
     const timer: ReturnType<typeof setInterval> | null = null
+    const lastestMessageId = ref<number>(0)
 
-    socket.on('messagesList', (resMessagesList: ResMessagesList) => {
-        if (resMessagesList.status === 200) {
-            messagesList.value = resMessagesList.messagesList.map((message) => {
-                message.date = new Date(message.date)
-                return message
-            })
-            console.log(messagesList.value)
-        } else {
-            ElMessage({
-                message: resMessagesList.message,
-                type: 'error',
-            })
+    // socket.on('messagesList', (resMessagesList: ResMessagesList) => {
+    //     if (resMessagesList.status === 200) {
+    //         messagesList.value = resMessagesList.messagesList.map((message) => {
+    //             message.date = new Date(message.date)
+    //             return message
+    //         })
+    //         console.log(messagesList.value)
+    //     } else {
+    //         ElMessage({
+    //             message: resMessagesList.message,
+    //             type: 'error',
+    //         })
+    //     }
+    // })
+
+    socket.on('LatestMessageId', (id: number) => {
+        lastestMessageId.value = id
+        socket.emit('getBeforeMessage', id + 1, 50)
+    })
+    socket.on('BeforeMessagesList', (res: ResLimitMessagesList) => {
+        const newMessagesList: Message[] = res.messageList.map(
+            (message): Message => ({
+                ...message,
+                date: new Date(message.date),
+            }),
+        )
+        messagesList.value = mergeMessage(messagesList.value, newMessagesList)
+    })
+
+    socket.on('AfterMessagesList', (res: ResLimitMessagesList) => {
+        const newMessagesList: Message[] = res.messageList.map(
+            (message): Message => ({
+                ...message,
+                date: new Date(message.date),
+            }),
+        )
+        messagesList.value = mergeMessage(messagesList.value, newMessagesList)
+    })
+
+    socket.on('newMessage', (res: ResMessagesList) => {
+        const serverMessage = res.newMessages
+        if (lastestMessageId.value + 1 === serverMessage.messageId) {
+            const message: Message = { ...serverMessage, date: new Date(serverMessage.date) }
+            messagesList.value.set(message.messageId, message)
+            lastestMessageId.value = message.messageId
+        } else if (lastestMessageId.value + 1 < serverMessage.messageId) {
+            socket.emit(
+                'getAfterMessage',
+                lastestMessageId.value,
+                serverMessage.messageId - lastestMessageId.value + 1,
+            )
         }
     })
 
     socket.on('connect', () => {
-        // connectButtonText.value = '断开'
         isConnected.value = true
-        socket.emit('getMessages')
+        socket.emit('getLatestMessageId')
     })
     socket.on('disconnect', () => {
-        // connectButtonText.value = '连接'
         isConnected.value = false
     })
     socket.on('error', (message: string) => {
@@ -121,21 +159,28 @@
         }
     })
 
-    watch(messagesList, () => {
-        nextTick(() => {
-            if (messagesView.value) {
-                const threshold = 25
-                if (
-                    messagesView.value.scrollHeight -
-                        messagesView.value.scrollTop -
-                        messagesView.value.clientHeight >
-                    threshold
-                ) {
-                    messagesView.value.scrollTop = messagesView.value.scrollHeight
-                }
+    watch(
+        () => messagesList.value.size,
+        async () => {
+            const messagesViewInstance = messagesView.value
+            const wrapRef = messagesViewInstance?.wrapRef
+
+            if (!messagesViewInstance || !wrapRef) {
+                return
             }
-        })
-    })
+
+            const threshold = 25
+            const distanceToBottom = wrapRef.scrollHeight - wrapRef.scrollTop - wrapRef.clientHeight
+
+            const shouldScrollToBottom = distanceToBottom <= threshold
+
+            await nextTick()
+
+            if (shouldScrollToBottom) {
+                messagesViewInstance.setScrollTop(wrapRef.scrollHeight)
+            }
+        },
+    )
 
     // hooks
     onMounted(() => {
@@ -153,6 +198,19 @@
     })
 
     // methods
+    function mergeMessage(
+        currentMessage: Map<number, Message>,
+        fetchMessage: Message[],
+    ): Map<number, Message> {
+        const messageById = new Map<number, Message>()
+        for (const [, message] of currentMessage) {
+            messageById.set(message.messageId, message)
+        }
+        for (const message of fetchMessage) {
+            messageById.set(message.messageId, message)
+        }
+        return new Map(Array.from(messageById.entries()).sort(([a], [b]) => a - b))
+    }
     function logoutButton() {
         router.push({ name: 'LoginView' })
         socket.disconnect()
@@ -180,8 +238,8 @@
     }
     function judgeDate(messageId: number) {
         if (messageId === 1) return true
-        const current = messagesList.value[messageId - 1]
-        const previous = messagesList.value[messageId - 2]
+        const current = messagesList.value.get(messageId)
+        const previous = messagesList.value.get(messageId - 1)
         if (current && previous) {
             return current.date.getTime() - previous.date.getTime() > 10 * 60 * 1000
         }
@@ -199,6 +257,13 @@
             return 'isSelf'
         } else {
             return 'isOther'
+        }
+    }
+    function scrolling(scroll: { scrollLeft: number; scrollTop: number }) {
+        if (messagesView.value && messagesView.value.wrapRef) {
+            if (scroll.scrollTop === 0) {
+                socket.emit('getBeforeMessage', messagesList.value.keys().next().value, 20)
+            }
         }
     }
 </script>
@@ -252,6 +317,7 @@
         align-self: flex-end;
         border-radius: 13px 0 13px 13px;
         padding: 5px;
+        margin-right: 7px;
         background-color: rgb(35, 88, 168);
         color: white;
         max-width: 70%;
@@ -261,6 +327,7 @@
         align-self: flex-start;
         border-radius: 0 13px 13px 13px;
         padding: 5px;
+        margin-left: 7px;
         background-color: rgb(207, 184, 184);
         color: black;
         max-width: 70%;

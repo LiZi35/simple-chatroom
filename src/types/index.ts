@@ -5,8 +5,21 @@ export interface Message {
     content: string
     date: Date
 }
+export interface ServerMessages {
+    messageId: number
+    senderId: string
+    senderNickname: string
+    content: string
+    date: number
+}
 export interface ResMessagesList {
     status: number
     message: string
-    messagesList: Message[]
+    newMessages: ServerMessages
+}
+export interface ResLimitMessagesList {
+    status: number
+    messageId: number
+    limit: number
+    messageList: ServerMessages[]
 }

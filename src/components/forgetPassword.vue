@@ -27,7 +27,7 @@
             >
                 {{
                     forgetPasswordCountdownNumber > 0
-                        ? `${forgetPasswordCountdownNumber}s秒后重试`
+                        ? `${forgetPasswordCountdownNumber}秒后重试`
                         : '发送验证码'
                 }}
             </el-button>
@@ -150,6 +150,11 @@
                         type: 'success',
                         message: res.message,
                     })
+                    forgetPasswordForm.value.email = ''
+                    forgetPasswordForm.value.verifyCode = ''
+                    forgetPasswordForm.value.password = ''
+                    forgetPasswordForm.value.confirmPassword = ''
+
                     setTimeout(() => {
                         forgetPasswordDialogVisible.value = false
                     }, 500)
