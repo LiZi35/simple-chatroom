@@ -172,6 +172,7 @@
                 forgetPasswordButtonLoading.value = false
             } else {
                 console.log('验证失败')
+                forgetPasswordButtonLoading.value = false
             }
         })
     }

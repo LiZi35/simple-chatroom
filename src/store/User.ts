@@ -1,12 +1,22 @@
 import { defineStore } from 'pinia'
 export const useUserStore = defineStore('User', {
     state: () => {
-        const stored = JSON.parse(localStorage.getItem('user') || '{}')
-        return {
-            id: stored.id,
-            email: stored.email,
-            nickname: stored.nickname,
+        try{
+            const stored = JSON.parse(localStorage.getItem('user') || '{}')
+            return {
+                id: stored.id,
+                email: stored.email,
+                nickname: stored.nickname,
+            }
+        } catch {
+            const stored = JSON.parse('{}')
+            return {
+                id: stored.id,
+                email: stored.email,
+                nickname: stored.nickname,
+            }
         }
+
     },
     actions: {
         isLoggedIn() {

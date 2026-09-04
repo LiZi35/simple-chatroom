@@ -4,7 +4,7 @@
             <el-icon size="25">
                 <ChatDotRound />
             </el-icon>
-            <el-text style="color: black; font-size: large">
+            <el-text style="color: black; font-size: large" class="fonts">
                 <b>simple-chatroom</b>
             </el-text>
             <div class="headerButtons" style="margin-left: auto">
@@ -17,10 +17,12 @@
                 <!--消息列表-->
                 <div v-for="[, message] in messagesList" :key="message.messageId" class="message">
                     <!-- 时间戳 -->
-                    <div v-if="judgeDate(message.messageId)" class="time">
+                    <div v-if="judgeDate(message.messageId)" class="time fonts">
                         {{ showDate(message.date) }}
                     </div>
-                    <div :class="judgeSender(message)">{{ message.content }}</div>
+                    <div :class="judgeSender(message)" class="fonts">
+                        {{ message.content }}
+                    </div>
                 </div>
             </el-scrollbar>
             <div class="input">
@@ -61,6 +63,7 @@
     const text = ref('')
     const timer: ReturnType<typeof setInterval> | null = null
     const lastestMessageId = ref<number>(0)
+    const messagePulling = ref<boolean>(false)
 
     // socket.on('messagesList', (resMessagesList: ResMessagesList) => {
     //     if (resMessagesList.status === 200) {
@@ -89,6 +92,7 @@
             }),
         )
         messagesList.value = mergeMessage(messagesList.value, newMessagesList)
+        messagePulling.value = false
     })
 
     socket.on('AfterMessagesList', (res: ResLimitMessagesList) => {
@@ -99,6 +103,8 @@
             }),
         )
         messagesList.value = mergeMessage(messagesList.value, newMessagesList)
+        lastestMessageId.value = Array.from(messagesList.value.keys()).at(-1) || 0
+        messagePulling.value = false
     })
 
     socket.on('newMessage', (res: ResMessagesList) => {
@@ -108,6 +114,8 @@
             messagesList.value.set(message.messageId, message)
             lastestMessageId.value = message.messageId
         } else if (lastestMessageId.value + 1 < serverMessage.messageId) {
+            if (messagePulling.value) return
+            messagePulling.value = true
             socket.emit(
                 'getAfterMessage',
                 lastestMessageId.value,
@@ -262,12 +270,19 @@
     function scrolling(scroll: { scrollLeft: number; scrollTop: number }) {
         if (messagesView.value && messagesView.value.wrapRef) {
             if (scroll.scrollTop === 0) {
+                if (messagePulling.value) return
+                messagePulling.value = true
                 socket.emit('getBeforeMessage', messagesList.value.keys().next().value, 20)
             }
         }
     }
 </script>
 <style scoped>
+    .fonts {
+        font-family:
+            'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+            '微软雅黑', 'Noto Sans CJK SC', 'Noto Sans SC', Arial, sans-serif;
+    }
     .Box {
         display: flex;
         flex-direction: column;
