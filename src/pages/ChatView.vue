@@ -80,9 +80,9 @@
     //     }
     // })
 
-    socket.on('LatestMessageId', (id: number) => {
-        lastestMessageId.value = id
-        socket.emit('getBeforeMessage', id + 1, 50)
+    socket.on('LatestMessageId', (data: { status: number; latestMessageId: number }) => {
+        lastestMessageId.value = data.latestMessageId
+        socket.emit('getBeforeMessage', data.latestMessageId + 1, 50)
     })
     socket.on('BeforeMessagesList', (res: ResLimitMessagesList) => {
         const newMessagesList: Message[] = res.messageList.map(
@@ -131,14 +131,16 @@
     socket.on('disconnect', () => {
         isConnected.value = false
     })
-    socket.on('error', (message: string) => {
+    socket.on('error', (data: { shouldOut: boolean; message: string }) => {
         ElMessage({
-            message: message,
+            message: data.message,
             type: 'error',
         })
-        setTimeout(() => {
-            router.push({ name: 'LoginView' })
-        }, 1000)
+        if (data.shouldOut) {
+            setTimeout(() => {
+                router.push({ name: 'LoginView' })
+            }, 1000)
+        }
     })
     socket.on('connect_error', (err) => {
         if (
