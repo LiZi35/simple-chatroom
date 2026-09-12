@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-    import { ref } from 'vue'
+    import { ref, watch } from 'vue'
     import { ElMessage, type FormInstance, type FormItemRule } from 'element-plus'
     import { useCountdown } from '@/hooks/useCountdown.ts'
     import { type ApiValidationError, forgetPassword, sendVerifyCode } from '@/api/auth.ts'
@@ -193,6 +193,15 @@
         }
     }
 
+    watch(
+        () => forgetPasswordForm.value.password,
+        () => {
+            if (forgetPasswordForm.value.confirmPassword) {
+                forgetPasswordFormRef.value?.validateField('confirmPassword', () => {})
+            }
+        },
+    )
+
     const forgetPasswordRules = {
         email: [
             { required: true, message: '请输入邮箱地址', trigger: 'blur' },
@@ -202,7 +211,10 @@
                 trigger: ['blur'],
             },
         ],
-        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+        password: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min: 8, max: 32, message: '密码需要在8到32字符之间' },
+        ],
         confirmPassword: [
             { required: true, message: '请输入密码', trigger: 'blur' },
             { validator: forgetPasswordCheckPassword, trigger: 'blur' },

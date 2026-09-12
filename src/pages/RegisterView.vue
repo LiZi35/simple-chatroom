@@ -70,7 +70,7 @@
     </div>
 </template>
 <script setup lang="ts">
-    import { ref } from 'vue'
+    import { ref, watch } from 'vue'
     import { ElMessage } from 'element-plus'
     import type { FormInstance, FormItemRule } from 'element-plus'
     import { Lock, Message, User, CircleCheck } from '@element-plus/icons-vue'
@@ -112,7 +112,7 @@
         clearServerError()
         const errors = issues.map((issue) => ({
             field: issue.path.map(String).join('.'),
-            code: issue.code,
+            verifyCode: issue.code,
             message: issue.message,
         }))
         errors.forEach((error) => {
@@ -147,8 +147,14 @@
                 trigger: ['blur'],
             },
         ],
-        nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
-        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+        nickname: [
+            { required: true, message: '请输入昵称', trigger: 'blur' },
+            { min: 3, max: 8, message: '昵称需要在3到8字符之间' },
+        ],
+        password: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min: 8, max: 32, message: '密码需要在8到32字符之间' },
+        ],
         confirmPassword: [
             { required: true, message: '请输入密码', trigger: 'blur' },
             { validator: checkPassword, trigger: 'blur' },
@@ -162,6 +168,15 @@
             },
         ],
     }
+    watch(
+        () => form.value.password,
+        () => {
+            if (form.value.confirmPassword) {
+                formRef.value?.validateField('confirmPassword', () => {})
+            }
+        },
+    )
+
     const verifyButton = async () => {
         sending.value = true
         if (!form.value.email) {
