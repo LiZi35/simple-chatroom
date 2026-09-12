@@ -213,3 +213,5 @@ export async function register(
         return errorHandler(error)
     }
 }
+
+export { http }

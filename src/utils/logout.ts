@@ -1,9 +1,11 @@
-import cookies from 'js-cookie'
 import { useUserStore } from '@/store/User'
+import { http } from '@/api/auth.ts'
 
 export function logout() {
     const userStore = useUserStore()
     localStorage.removeItem('user')
     userStore.logout()
-    cookies.remove('token')
+    http.post('logout').then(() => {
+        return
+    })
 }

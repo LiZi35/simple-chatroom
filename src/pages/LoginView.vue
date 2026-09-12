@@ -92,7 +92,7 @@
 
     function clearServerError(key?: string) {
         if (!key) {
-            Object.keys(serverError).forEach((key) => {
+            Object.keys(serverError.value).forEach((key) => {
                 delete serverError.value[key]
             })
             return

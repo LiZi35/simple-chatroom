@@ -42,7 +42,7 @@
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
     import { nextTick, onMounted, onUnmounted, ref, watch, computed } from 'vue'
     import io from 'socket.io-client'
-    import type { Message, ResLimitMessagesList, ResMessagesList } from '@/types'
+    import type { Message, ResLimitMessagesList, ResMessagesList, socketError } from '@/types'
     import { ElMessage, type ScrollbarInstance } from 'element-plus'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/store/User'
@@ -63,22 +63,10 @@
     const text = ref('')
     const timer: ReturnType<typeof setInterval> | null = null
     const lastestMessageId = ref<number>(0)
-    const messagePulling = ref<boolean>(false)
-
-    // socket.on('messagesList', (resMessagesList: ResMessagesList) => {
-    //     if (resMessagesList.status === 200) {
-    //         messagesList.value = resMessagesList.messagesList.map((message) => {
-    //             message.date = new Date(message.date)
-    //             return message
-    //         })
-    //         console.log(messagesList.value)
-    //     } else {
-    //         ElMessage({
-    //             message: resMessagesList.message,
-    //             type: 'error',
-    //         })
-    //     }
-    // })
+    const messagePulling = ref<{ before: boolean; after: boolean }>({
+        before: false,
+        after: false,
+    })
 
     socket.on('LatestMessageId', (data: { status: number; latestMessageId: number }) => {
         lastestMessageId.value = data.latestMessageId
@@ -92,7 +80,7 @@
             }),
         )
         messagesList.value = mergeMessage(messagesList.value, newMessagesList)
-        messagePulling.value = false
+        messagePulling.value.before = false
     })
 
     socket.on('AfterMessagesList', (res: ResLimitMessagesList) => {
@@ -104,7 +92,7 @@
         )
         messagesList.value = mergeMessage(messagesList.value, newMessagesList)
         lastestMessageId.value = Array.from(messagesList.value.keys()).at(-1) || 0
-        messagePulling.value = false
+        messagePulling.value.after = false
     })
 
     socket.on('newMessage', (res: ResMessagesList) => {
@@ -114,8 +102,8 @@
             messagesList.value.set(message.messageId, message)
             lastestMessageId.value = message.messageId
         } else if (lastestMessageId.value + 1 < serverMessage.messageId) {
-            if (messagePulling.value) return
-            messagePulling.value = true
+            if (messagePulling.value.after) return
+            messagePulling.value.after = true
             socket.emit(
                 'getAfterMessage',
                 lastestMessageId.value,
@@ -126,12 +114,19 @@
 
     socket.on('connect', () => {
         isConnected.value = true
+        messagePulling.value.before = false
+        messagePulling.value.after = false
         socket.emit('getLatestMessageId')
     })
     socket.on('disconnect', () => {
         isConnected.value = false
     })
-    socket.on('error', (data: { shouldOut: boolean; message: string }) => {
+    socket.on('error', (data: socketError) => {
+        if (data.on === 'getAfterMessage') {
+            messagePulling.value.after = false
+        } else if (data.on === 'getBeforeMessage') {
+            messagePulling.value.before = true
+        }
         ElMessage({
             message: data.message,
             type: 'error',
@@ -158,6 +153,7 @@
             } else if (err.message === 'NOT_LOGGED_IN') {
                 ElMessage.error({ message: '未登录' })
             }
+            socket.disconnect()
             setTimeout(() => {
                 router.push({ name: 'LoginView' })
             }, 1000)
@@ -272,8 +268,8 @@
     function scrolling(scroll: { scrollLeft: number; scrollTop: number }) {
         if (messagesView.value && messagesView.value.wrapRef) {
             if (scroll.scrollTop === 0) {
-                if (messagePulling.value) return
-                messagePulling.value = true
+                if (messagePulling.value.before) return
+                messagePulling.value.before = true
                 socket.emit('getBeforeMessage', messagesList.value.keys().next().value, 20)
             }
         }

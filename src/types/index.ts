@@ -23,3 +23,8 @@ export interface ResLimitMessagesList {
     limit: number
     messageList: ServerMessages[]
 }
+export interface socketError {
+    on: 'sendMessage' | 'getBeforeMessage' | 'getAfterMessage' | 'getLatestMessageId'
+    shouldOut: boolean
+    message: string
+}
