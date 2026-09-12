@@ -26,7 +26,12 @@
                 </div>
             </el-scrollbar>
             <div class="input">
-                <el-input v-model="text" @keyup.enter="sendMessage"></el-input>
+                <el-input
+                    v-model="text"
+                    @keyup.enter="sendMessage"
+                    maxlength="300"
+                    show-word-limit
+                ></el-input>
                 <el-button
                     style="margin-left: 5px"
                     type="primary"
