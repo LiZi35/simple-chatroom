@@ -96,7 +96,7 @@
         })
     }
 
-    defineProps({})
+    // defineProps({})
     defineExpose({
         forgetPasswordSubmitForm,
         forgetPasswordButtonLoading,
@@ -139,7 +139,7 @@
         forgetPasswordButtonLoading.value = true
         forgetPasswordFormRef.value.validate(async (valid: boolean) => {
             if (valid) {
-                console.log('验证成功')
+                // console.log('验证成功')
                 const res = await forgetPassword(
                     forgetPasswordForm.value.email,
                     forgetPasswordForm.value.verifyCode,
@@ -171,7 +171,7 @@
                 }
                 forgetPasswordButtonLoading.value = false
             } else {
-                console.log('验证失败')
+                // console.log('验证失败')
                 forgetPasswordButtonLoading.value = false
             }
         })

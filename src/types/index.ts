@@ -5,23 +5,23 @@ export interface Message {
     content: string
     date: Date
 }
-export interface ServerMessages {
+export interface ServerMessage {
     messageId: number
     senderId: string
     senderNickname: string
     content: string
     date: number
 }
-export interface ResMessagesList {
+export interface ResMessage {
     status: number
     message: string
-    newMessages: ServerMessages
+    newMessage: ServerMessage
 }
 export interface ResLimitMessagesList {
     status: number
     messageId: number
     limit: number
-    messageList: ServerMessages[]
+    messageList: ServerMessage[]
 }
 export interface socketError {
     on: 'sendMessage' | 'getBeforeMessage' | 'getAfterMessage' | 'getLatestMessageId'

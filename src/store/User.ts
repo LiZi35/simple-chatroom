@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 export const useUserStore = defineStore('User', {
     state: () => {
-        try{
+        try {
             const stored = JSON.parse(localStorage.getItem('user') || '{}')
             return {
                 id: stored.id,
@@ -9,14 +9,12 @@ export const useUserStore = defineStore('User', {
                 nickname: stored.nickname,
             }
         } catch {
-            const stored = JSON.parse('{}')
             return {
-                id: stored.id,
-                email: stored.email,
-                nickname: stored.nickname,
+                id: '',
+                email: '',
+                nickname: '',
             }
         }
-
     },
     actions: {
         isLoggedIn() {

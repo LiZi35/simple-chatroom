@@ -210,7 +210,7 @@
         buttonLoading.value = true
         formRef.value.validate(async (valid: boolean) => {
             if (valid) {
-                console.log('验证成功')
+                // console.log('验证成功')
                 const res = await register(
                     form.value.email,
                     form.value.password,
@@ -246,7 +246,7 @@
                     }
                 }
             } else {
-                console.log('验证失败')
+                // console.log('验证失败')
             }
             buttonLoading.value = false
         })

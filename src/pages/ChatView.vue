@@ -47,7 +47,7 @@
     import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
     import { nextTick, onMounted, onUnmounted, ref, watch, computed } from 'vue'
     import io from 'socket.io-client'
-    import type { Message, ResLimitMessagesList, ResMessagesList, socketError } from '@/types'
+    import type { Message, ResLimitMessagesList, ResMessage, socketError } from '@/types'
     import { ElMessage, type ScrollbarInstance } from 'element-plus'
     import { useRouter } from 'vue-router'
     import { useUserStore } from '@/store/User'
@@ -66,15 +66,15 @@
     const messagesList = ref(new Map<number, Message>())
     const messagesView = ref<ScrollbarInstance | null>(null)
     const text = ref('')
-    const timer: ReturnType<typeof setInterval> | null = null
-    const lastestMessageId = ref<number>(0)
+    // const timer: ReturnType<typeof setInterval> | null = null
+    const latestMessageId = ref<number>(0)
     const messagePulling = ref<{ before: boolean; after: boolean }>({
         before: false,
         after: false,
     })
 
     socket.on('LatestMessageId', (data: { status: number; latestMessageId: number }) => {
-        lastestMessageId.value = data.latestMessageId
+        latestMessageId.value = data.latestMessageId
         socket.emit('getBeforeMessage', data.latestMessageId + 1, 50)
     })
     socket.on('BeforeMessagesList', (res: ResLimitMessagesList) => {
@@ -96,23 +96,23 @@
             }),
         )
         messagesList.value = mergeMessage(messagesList.value, newMessagesList)
-        lastestMessageId.value = Array.from(messagesList.value.keys()).at(-1) || 0
+        latestMessageId.value = Array.from(messagesList.value.keys()).at(-1) || 0
         messagePulling.value.after = false
     })
 
-    socket.on('newMessage', (res: ResMessagesList) => {
-        const serverMessage = res.newMessages
-        if (lastestMessageId.value + 1 === serverMessage.messageId) {
+    socket.on('newMessage', (res: ResMessage) => {
+        const serverMessage = res.newMessage
+        if (latestMessageId.value + 1 === serverMessage.messageId) {
             const message: Message = { ...serverMessage, date: new Date(serverMessage.date) }
             messagesList.value.set(message.messageId, message)
-            lastestMessageId.value = message.messageId
-        } else if (lastestMessageId.value + 1 < serverMessage.messageId) {
+            latestMessageId.value = message.messageId
+        } else if (latestMessageId.value + 1 < serverMessage.messageId) {
             if (messagePulling.value.after) return
             messagePulling.value.after = true
             socket.emit(
                 'getAfterMessage',
-                lastestMessageId.value,
-                serverMessage.messageId - lastestMessageId.value + 1,
+                latestMessageId.value,
+                serverMessage.messageId - latestMessageId.value + 1,
             )
         }
     })
@@ -203,7 +203,7 @@
         // }, 1000)
     })
     onUnmounted(() => {
-        if (timer) clearInterval(timer)
+        // if (timer) clearInterval(timer)
         socket.disconnect()
         socket.removeAllListeners()
     })
@@ -232,7 +232,7 @@
         })
     }
     function sendMessage() {
-        console.log('SendMessage', text.value)
+        // console.log('SendMessage', text.value)
         const content: string = text.value
         text.value = ''
         socket.emit('sendMessage', content)
@@ -257,11 +257,7 @@
         return true
     }
     function showDate(date: Date) {
-        if (date.getMinutes() < 10) {
-            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:0${date.getMinutes()}`
-        } else {
-            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`
-        }
+        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
     }
     function judgeSender(message: Message) {
         if (message.senderId === userStore.id) {

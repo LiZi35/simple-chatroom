@@ -130,7 +130,7 @@
         buttonLoading.value = true
         formRef.value.validate(async (valid: boolean) => {
             if (valid) {
-                console.log('验证成功')
+                // console.log('验证成功')
                 const res = await login(form.value.email, form.value.password)
                 if (res.success) {
                     userStore.login(res.id, res.email, res.nickname)
@@ -161,7 +161,7 @@
                     }
                 }
             } else {
-                console.log('验证失败')
+                // console.log('验证失败')
             }
             buttonLoading.value = false
         })
